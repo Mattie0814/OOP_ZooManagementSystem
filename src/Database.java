@@ -1,5 +1,6 @@
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.FileReader;
@@ -15,10 +16,9 @@ public class Database {
 
     private static final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
-            .registerTypeAdapter(TaskData.class, new TaskDataAdapter())
-            .registerTypeAdapter(ItemData.class, new ItemDataAdapter())
+            .registerTypeHierarchyAdapter(TaskData.class, new TaskDataAdapter())
+            .registerTypeHierarchyAdapter(ItemData.class, new ItemDataAdapter())
             .create();
-
 
     private static final Type USER_LIST_TYPE = new TypeToken<ArrayList<UserData>>() {}.getType();
     private static final Type ITEM_LIST_TYPE = new TypeToken<ArrayList<ItemData>>() {}.getType();
@@ -54,27 +54,19 @@ public class Database {
     private static <T> void saveData(String path, ArrayList<T> data) {
         try (FileWriter writer = new FileWriter(path)) {
             gson.toJson(data, writer);
-
             System.out.println(path + " successfully saved!");
-
         } catch (IOException e) {
-
-            System.out.println("Failed to save " + path);
-            e.printStackTrace();
+            System.err.println("Failed to save " + path + ": " + e.getMessage());
         }
     }
 
     private static <T> ArrayList<T> loadData(String path, Type type) {
         try (FileReader reader = new FileReader(path)) {
             ArrayList<T> data = gson.fromJson(reader, type);
-
             System.out.println(path + " successfully loaded!");
-
             return data != null ? data : new ArrayList<>();
-
-        } catch (IOException e) {
-            System.out.println(path + " not found or could not be read.");
-
+        } catch (IOException | JsonParseException e) {
+            System.err.println(path + " not found or could not be read.");
             return new ArrayList<>();
         }
     }

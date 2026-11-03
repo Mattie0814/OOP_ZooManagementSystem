@@ -1,11 +1,12 @@
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class EnclosureData {
     private final String id;
     private final String type;
     private final int capacity;
-    private HashMap<String, AnimalData> currentOccupants;
+    private final Map<String, AnimalData> currentOccupants = new LinkedHashMap<>();
 
     public EnclosureData(String id, String type, int capacity) {
         this.id = id;
@@ -23,15 +24,18 @@ public class EnclosureData {
         return capacity;
     }
 
-    public void addOccupant(String id, AnimalData animal) {
-        if (currentOccupants.containsValue(animal)) { return; }
+    public boolean isFull() {
+        return currentOccupants.size() >= capacity;
+    }
+
+    public boolean addOccupant(String id, AnimalData animal) {
+        if (isFull() || currentOccupants.containsKey(id)) return false;
 
         currentOccupants.put(id, animal);
+        return true;
     }
 
     public void removeOccupant(String id) {
-        if (!currentOccupants.containsValue(id)) { return; }
-
         currentOccupants.remove(id);
     }
 

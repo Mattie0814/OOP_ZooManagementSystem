@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class GUI_Schedule extends JPanel {
-    private final JLabel titleLabel;
+public final class GUI_Schedule extends JPanel {
     private final JLabel timeLabel;
+    private final Timer clockTimer;
 
-    private HashMap<LocalDate, List<TaskData>> taskMap = new HashMap<>();
+    private final HashMap<LocalDate, List<TaskData>> taskMap = new HashMap<>();
 
     private final CardLayout cardLayout;
     private final JPanel mainPanel;
@@ -24,10 +24,11 @@ public class GUI_Schedule extends JPanel {
 
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
-        headerPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        headerPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                BorderFactory.createEmptyBorder(15, 10, 15, 10)));
 
-        titleLabel = new JLabel("SCHEDULE MANAGER", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("SCHEDULE MANAGER", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -46,16 +47,23 @@ public class GUI_Schedule extends JPanel {
         add(optionsPanel, BorderLayout.WEST);
         add(calendarPanel, BorderLayout.CENTER);
 
-        handleTime();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy hh:mm:ss a");
+        timeLabel.setText(LocalDateTime.now().format(formatter));
+        clockTimer = new Timer(1000, e -> timeLabel.setText(LocalDateTime.now().format(formatter)));
 
         loadPresetData();
     }
 
-    private void handleTime() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy hh:mm:ss a");
-        timeLabel.setText(LocalDateTime.now().format(formatter));
-        Timer timer = new Timer(1000, e -> timeLabel.setText(LocalDateTime.now().format(formatter)));
-        timer.start();
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        clockTimer.start();
+    }
+
+    @Override
+    public void removeNotify() {
+        clockTimer.stop();
+        super.removeNotify();
     }
 
     private JPanel createOptionsPanel() {
@@ -69,8 +77,8 @@ public class GUI_Schedule extends JPanel {
         optionsLabel.setFont(new Font("Arial", Font.BOLD, 20));
         optionsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JButton addButton = new JButton("Add TaskData Today");
-        JButton removeButton = new JButton("Remove TaskData");
+        JButton addButton = new JButton("Add Task Today");
+        JButton removeButton = new JButton("Remove Task");
         JButton notificationButton = new JButton("Notifications");
         JButton returnButton = new JButton("Return to Main");
 
@@ -84,7 +92,7 @@ public class GUI_Schedule extends JPanel {
         addButton.addActionListener(e -> promptAddTask(LocalDate.now()));
         removeButton.addActionListener(e -> removeTaskDialog());
         notificationButton.addActionListener(e -> showNotifications());
-        returnButton.addActionListener(e -> showMain());
+        returnButton.addActionListener(e -> cardLayout.show(mainPanel, "MAIN"));
 
         optionsPanel.add(optionsLabel);
         optionsPanel.add(Box.createVerticalStrut(25));
@@ -100,27 +108,25 @@ public class GUI_Schedule extends JPanel {
     }
 
     public void promptAddTask(LocalDate date) {
-        String name = JOptionPane.showInputDialog(this, "TaskData Name for " + date + ":", "Add TaskData", JOptionPane.PLAIN_MESSAGE);
+        String name = JOptionPane.showInputDialog(this, "Task Name for " + date + ":", "Add Task", JOptionPane.PLAIN_MESSAGE);
         if (name == null || name.trim().isEmpty()) return;
 
-        String time = JOptionPane.showInputDialog(this, "TaskData Time (e.g., 09:00 AM):", "Add TaskData", JOptionPane.PLAIN_MESSAGE);
-
+        String time = JOptionPane.showInputDialog(this, "Task Time (e.g., 09:00 AM):", "Add Task", JOptionPane.PLAIN_MESSAGE);
         if (time == null || time.trim().isEmpty()) return;
 
         String[] repeatOptions = {"NONE", "DAILY", "WEEKLY", "MONTHLY"};
         String recurrence = (String) JOptionPane.showInputDialog(
-                this, "Repeat Frequency:", "TaskData Recurrence",
+                this, "Repeat Frequency:", "Task Recurrence",
                 JOptionPane.QUESTION_MESSAGE, null, repeatOptions, repeatOptions[0]
         );
 
         if (recurrence == null) recurrence = "NONE";
 
-        TaskData task = new TaskData(name, time, date, recurrence);
-        addTask(task);
+        addTask(new TaskData(name.trim(), time.trim(), date, recurrence));
         calendarPanel.refreshCalendar();
     }
 
-    public void addTask(TaskData task) {
+    private void addTask(TaskData task) {
         taskMap.computeIfAbsent(task.getStartDate(), k -> new ArrayList<>()).add(task);
     }
 
@@ -146,7 +152,7 @@ public class GUI_Schedule extends JPanel {
         }
 
         TaskData selected = (TaskData) JOptionPane.showInputDialog(
-                this, "Select a task to remove:", "Remove TaskData",
+                this, "Select a task to remove:", "Remove Task",
                 JOptionPane.PLAIN_MESSAGE, null, allTasks.toArray(), allTasks.get(0)
         );
 
@@ -163,13 +169,7 @@ public class GUI_Schedule extends JPanel {
         JOptionPane.showMessageDialog(this, "Notification system coming soon.", "Notifications", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private void showMain() {
-        if (cardLayout != null && mainPanel != null) {
-            cardLayout.show(mainPanel, "MAIN");
-        }
-    }
-
-    public void loadPresetData() {
+    private void loadPresetData() {
         LocalDate today = LocalDate.now();
 
         addTask(new FoodTask(
@@ -202,21 +202,18 @@ public class GUI_Schedule extends JPanel {
                 "Aviary Enclosure 3", "High (Requires Bird Relocation)", "Safety Harness, Tension Tester"
         ));
 
-        if (calendarPanel != null) {
-            calendarPanel.refreshCalendar();
-        }
+        calendarPanel.refreshCalendar();
     }
 }
 
 class CalendarPanel extends JPanel {
-    private JLabel monthLabel;
-    private JPanel calendarGrid;
-    private YearMonth currentMonth;
-    private GUI_Schedule parentSchedule;
+    private final JLabel monthLabel = new JLabel("", SwingConstants.CENTER);
+    private final JPanel calendarGrid = new JPanel(new GridLayout(0, 7, 5, 5));
+    private final GUI_Schedule parentSchedule;
+    private YearMonth currentMonth = YearMonth.now();
 
     public CalendarPanel(GUI_Schedule parentSchedule) {
         this.parentSchedule = parentSchedule;
-        this.currentMonth = YearMonth.now();
 
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -225,8 +222,6 @@ class CalendarPanel extends JPanel {
 
         JPanel centerPanel = new JPanel(new BorderLayout(0, 5));
         centerPanel.add(createDayNames(), BorderLayout.NORTH);
-
-        calendarGrid = new JPanel(new GridLayout(0, 7, 5, 5));
         centerPanel.add(calendarGrid, BorderLayout.CENTER);
 
         add(centerPanel, BorderLayout.CENTER);
@@ -238,7 +233,6 @@ class CalendarPanel extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         JButton previousButton = new JButton("<");
         JButton nextButton = new JButton(">");
-        monthLabel = new JLabel("", SwingConstants.CENTER);
         monthLabel.setFont(new Font("Arial", Font.BOLD, 20));
 
         previousButton.addActionListener(e -> { currentMonth = currentMonth.minusMonths(1); refreshCalendar(); });
@@ -288,7 +282,7 @@ class CalendarPanel extends JPanel {
 
                 String buttonText = "<html><center><b>" + dayNumber + "</b>";
                 if (!tasksForDay.isEmpty()) {
-                    buttonText += "<br><font color='blue' size='2'>" + tasksForDay.size() + " TaskData(s)</font>";
+                    buttonText += "<br><font color='blue' size='2'>" + tasksForDay.size() + " Task(s)</font>";
                 }
                 buttonText += "</center></html>";
 
@@ -309,7 +303,7 @@ class CalendarPanel extends JPanel {
     }
 
     private void handleDateClick(LocalDate date, List<TaskData> tasks) {
-        StringBuilder msg = new StringBuilder("GUI_Schedule for " + date + ":\n\n");
+        StringBuilder msg = new StringBuilder("Schedule for " + date + ":\n\n");
         if (tasks.isEmpty()) {
             msg.append("No tasks scheduled.");
         } else {
@@ -321,7 +315,7 @@ class CalendarPanel extends JPanel {
             }
         }
 
-        Object[] options = {"Add TaskData", "Close"};
+        Object[] options = {"Add Task", "Close"};
         int choice = JOptionPane.showOptionDialog(
                 this, msg.toString(), "Tasks on " + date,
                 JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE,

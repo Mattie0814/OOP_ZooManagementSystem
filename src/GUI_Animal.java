@@ -1,36 +1,28 @@
 import javax.swing.*;
-import java.awt.*;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
+import java.awt.*;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
-public class GUI_Animal extends JPanel {
-    private Map<String, AnimalData> animalMap = new LinkedHashMap<>();
-    private Map<String, EnclosureData> enclosureMap = new LinkedHashMap<>();
+public final class GUI_Animal extends JPanel {
+    private final Map<String, AnimalData> animalMap = new LinkedHashMap<>();
+    private final Map<String, EnclosureData> enclosureMap = new LinkedHashMap<>();
 
-    private JButton registerAnimalButton;
-    private JButton addEnclosureButton;
-    private JButton returnButton;
-    private JTextField searchField;
+    private final JTextField searchField;
 
-    private DefaultTableModel animalTableModel;
-    private TableRowSorter<DefaultTableModel> animalSorter;
+    private final DefaultTableModel animalTableModel;
+    private final TableRowSorter<DefaultTableModel> animalSorter;
 
-    private DefaultTableModel enclosureTableModel;
-    private TableRowSorter<DefaultTableModel> enclosureSorter;
-
-    private CardLayout cardLayout;
-    private JPanel mainPanel;
+    private final DefaultTableModel enclosureTableModel;
+    private final TableRowSorter<DefaultTableModel> enclosureSorter;
 
     public GUI_Animal(CardLayout cardLayout, JPanel mainPanel) {
-        this.cardLayout = cardLayout;
-        this.mainPanel = mainPanel;
-
-        this.setLayout(new BorderLayout());
+        setLayout(new BorderLayout());
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         topPanel.setBorder(BorderFactory.createTitledBorder("Search & Registration"));
@@ -40,13 +32,13 @@ public class GUI_Animal extends JPanel {
         searchField = new JTextField(20);
         topPanel.add(searchField);
 
-        registerAnimalButton = new JButton("Register AnimalData");
-        addEnclosureButton = new JButton("Add Enclosure");
-        returnButton = new JButton("Return to Main");
+        JButton registerAnimalButton = new JButton("Register Animal");
+        JButton addEnclosureButton = new JButton("Add Enclosure");
+        JButton returnButton = new JButton("Return to Main");
 
         registerAnimalButton.addActionListener(e -> openAnimalRegistrationForm());
         addEnclosureButton.addActionListener(e -> openAddEnclosureForm());
-        returnButton.addActionListener(e -> showMain());
+        returnButton.addActionListener(e -> cardLayout.show(mainPanel, "MAIN"));
 
         topPanel.add(registerAnimalButton);
         topPanel.add(addEnclosureButton);
@@ -59,7 +51,12 @@ public class GUI_Animal extends JPanel {
                 "Enclosure Location", "Health Status"
         };
 
-        animalTableModel = new DefaultTableModel(animalCols, 0);
+        animalTableModel = new DefaultTableModel(animalCols, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         JTable animalTable = new JTable(animalTableModel);
 
         animalSorter = new TableRowSorter<>(animalTableModel);
@@ -73,10 +70,12 @@ public class GUI_Animal extends JPanel {
         enclosureTableModel = new DefaultTableModel(enclosureCols, 0) {
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 2 || columnIndex == 3) {
-                    return Integer.class;
-                }
-                return String.class;
+                return (columnIndex == 2 || columnIndex == 3) ? Integer.class : String.class;
+            }
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
             }
         };
 
@@ -88,18 +87,15 @@ public class GUI_Animal extends JPanel {
                 int n1 = Integer.parseInt(s1.replaceAll("\\D+", ""));
                 int n2 = Integer.parseInt(s2.replaceAll("\\D+", ""));
                 return Integer.compare(n1, n2);
-            } catch (Exception ex) {
+            } catch (NumberFormatException ex) {
                 return s1.compareTo(s2);
             }
         };
 
         enclosureSorter.setComparator(0, numericIdComparator);
-        enclosureSorter.setComparator(2, Comparator.naturalOrder());
-        enclosureSorter.setComparator(3, Comparator.naturalOrder());
-
         enclosureTable.setRowSorter(enclosureSorter);
 
-        tabbedPane.addTab("GUI_Animal", new JScrollPane(animalTable));
+        tabbedPane.addTab("Animals", new JScrollPane(animalTable));
         tabbedPane.addTab("Enclosures", new JScrollPane(enclosureTable));
 
         searchField.getDocument().addDocumentListener(new DocumentListener() {
@@ -114,29 +110,21 @@ public class GUI_Animal extends JPanel {
             public void changedUpdate(DocumentEvent e) {
                 filter();
             }
-
-            private void filter() {
-                String text = searchField.getText().trim();
-
-                if (text.isEmpty()) {
-                    animalSorter.setRowFilter(null);
-                    enclosureSorter.setRowFilter(null);
-                } else {
-                    animalSorter.setRowFilter(
-                            RowFilter.regexFilter("(?i)" + text)
-                    );
-
-                    enclosureSorter.setRowFilter(
-                            RowFilter.regexFilter("(?i)" + text)
-                    );
-                }
-            }
         });
 
         loadDefaultData();
 
-        this.add(topPanel, BorderLayout.NORTH);
-        this.add(tabbedPane, BorderLayout.CENTER);
+        add(topPanel, BorderLayout.NORTH);
+        add(tabbedPane, BorderLayout.CENTER);
+    }
+
+    private void filter() {
+        String text = searchField.getText().trim();
+        RowFilter<DefaultTableModel, Integer> rowFilter =
+                text.isEmpty() ? null : RowFilter.regexFilter("(?i)" + Pattern.quote(text));
+
+        animalSorter.setRowFilter(rowFilter);
+        enclosureSorter.setRowFilter(rowFilter);
     }
 
     private void loadDefaultData() {
@@ -146,47 +134,25 @@ public class GUI_Animal extends JPanel {
         enclosureMap.put(enc1.getId(), enc1);
         enclosureMap.put(enc2.getId(), enc2);
 
-        AnimalData animalData1 = new AnimalData(
-                "Mufasa",
-                "Lion",
-                "Male",
-                "2019-05-12",
-                "ENC-101",
-                "Healthy"
-        );
+        addAnimal(new AnimalData("Mufasa", "Lion", "Male", "2019-05-12", "ENC-101", "Healthy"));
+        addAnimal(new AnimalData("Tragen", "Bear", "Male", "2021-08-20", "ENC-102", "Critical"));
+    }
 
-        AnimalData animalData2 = new AnimalData(
-                "Tragen",
-                "Bear",
-                "Male",
-                "2021-08-20",
-                "ENC-102",
-                "Critical"
-        );
+    private void addAnimal(AnimalData animal) {
+        animalMap.put(animal.getName(), animal);
 
-        animalMap.put(animalData1.getName(), animalData1);
-        animalMap.put(animalData2.getName(), animalData2);
-
-
-        enc1.addOccupant(animalData1.getName(), animalData1);
-        enc2.addOccupant(animalData2.getName(), animalData2);
+        EnclosureData enclosure = enclosureMap.get(animal.getEnclosureId());
+        if (enclosure != null) {
+            enclosure.addOccupant(animal.getName(), animal);
+        }
 
         animalTableModel.addRow(new Object[]{
-                animalData1.getName(),
-                animalData1.getSpecies(),
-                animalData1.getGender(),
-                animalData1.getBirthDate(),
-                animalData1.getType(),
-                animalData1.getHealthStatus()
-        });
-
-        animalTableModel.addRow(new Object[]{
-                animalData2.getName(),
-                animalData2.getSpecies(),
-                animalData2.getGender(),
-                animalData2.getBirthDate(),
-                animalData2.getType(),
-                animalData2.getHealthStatus()
+                animal.getName(),
+                animal.getSpecies(),
+                animal.getGender(),
+                animal.getBirthDate(),
+                animal.getEnclosureId(),
+                animal.getHealthStatus()
         });
 
         updateEnclosureTable();
@@ -244,91 +210,44 @@ public class GUI_Animal extends JPanel {
         int option = JOptionPane.showConfirmDialog(
                 this,
                 formPanel,
-                "Register AnimalData Details",
+                "Register Animal Details",
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE
         );
 
-        if (option == JOptionPane.OK_OPTION) {
-            String name = nameField.getText().trim();
-            String species = speciesField.getText().trim();
-            String gender = (String) genderBox.getSelectedItem();
-            String birthDate = birthDateField.getText().trim();
-            String location = (String) enclosureBox.getSelectedItem();
-            String healthStatus = (String) healthBox.getSelectedItem();
+        if (option != JOptionPane.OK_OPTION) return;
 
-            if (name.isEmpty() || species.isEmpty()) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Name and Species are required!",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
+        String name = nameField.getText().trim();
+        String species = speciesField.getText().trim();
+        String gender = (String) genderBox.getSelectedItem();
+        String birthDate = birthDateField.getText().trim();
+        String location = (String) enclosureBox.getSelectedItem();
+        String healthStatus = (String) healthBox.getSelectedItem();
 
-            AnimalData animalData;
-
-            if (species.equalsIgnoreCase("Lion") ||
-                    species.equalsIgnoreCase("African Lion")) {
-
-                animalData = new AnimalData(
-                        name,
-                        "Lion",
-                        gender,
-                        birthDate,
-                        location,
-                        healthStatus
-                );
-
-            } else if (species.equalsIgnoreCase("Bear") ||
-                    species.equalsIgnoreCase("Black Bear")) {
-
-                animalData = new AnimalData(
-                        name,
-                        "Bear",
-                        gender,
-                        birthDate,
-                        location,
-                        healthStatus
-                );
-
-            } else {
-
-                animalData = new AnimalData(
-                        name,
-                        species,
-                        gender,
-                        birthDate,
-                        location,
-                        healthStatus
-                );
-            }
-
-            animalMap.put(name, animalData);
-
-            if (enclosureMap.containsKey(location)) {
-                enclosureMap.get(location).addOccupant(name, animalData);
-            }
-
-            animalTableModel.addRow(new Object[]{
-                    animalData.getName(),
-                    animalData.getSpecies(),
-                    animalData.getGender(),
-                    animalData.getBirthDate(),
-                    animalData.getType(),
-                    animalData.getHealthStatus()
-            });
-
-            updateEnclosureTable();
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "AnimalData Registered Successfully.",
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+        if (name.isEmpty() || species.isEmpty()) {
+            showError("Name and Species are required!");
+            return;
         }
+
+        if (animalMap.containsKey(name)) {
+            showError("An animal named \"" + name + "\" already exists.");
+            return;
+        }
+
+        EnclosureData enclosure = enclosureMap.get(location);
+        if (enclosure != null && enclosure.isFull()) {
+            showError("Enclosure " + location + " is already at full capacity.");
+            return;
+        }
+
+        addAnimal(new AnimalData(name, species, gender, birthDate, location, healthStatus));
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Animal Registered Successfully.",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
     private void openAddEnclosureForm() {
@@ -355,48 +274,46 @@ public class GUI_Animal extends JPanel {
                 JOptionPane.PLAIN_MESSAGE
         );
 
-        if (option == JOptionPane.OK_OPTION) {
-            String id = idField.getText().trim();
-            String type = typeField.getText().trim();
-            int capacity;
+        if (option != JOptionPane.OK_OPTION) return;
 
-            try {
-                capacity = Integer.parseInt(
-                        capacityField.getText().trim()
-                );
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Capacity must be a valid integer.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
+        String id = idField.getText().trim();
+        String type = typeField.getText().trim();
 
-            if (id.isEmpty() || type.isEmpty()) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "ID and Type are required.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
-
-            EnclosureData enclosure = new EnclosureData(id, type, capacity);
-
-            enclosureMap.put(id, enclosure);
-
-            updateEnclosureTable();
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Enclosure Added Successfully.",
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
+        if (id.isEmpty() || type.isEmpty()) {
+            showError("ID and Type are required.");
+            return;
         }
+
+        if (enclosureMap.containsKey(id)) {
+            showError("An enclosure with ID " + id + " already exists.");
+            return;
+        }
+
+        int capacity;
+        try {
+            capacity = Integer.parseInt(capacityField.getText().trim());
+        } catch (NumberFormatException ex) {
+            capacity = 0;
+        }
+
+        if (capacity <= 0) {
+            showError("Capacity must be a positive whole number.");
+            return;
+        }
+
+        enclosureMap.put(id, new EnclosureData(id, type, capacity));
+        updateEnclosureTable();
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Enclosure Added Successfully.",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     private void updateEnclosureTable() {
@@ -411,9 +328,5 @@ public class GUI_Animal extends JPanel {
                     enc.getCurrentOccupants().toString()
             });
         }
-    }
-
-    private void showMain() {
-        cardLayout.show(mainPanel, "MAIN");
     }
 }

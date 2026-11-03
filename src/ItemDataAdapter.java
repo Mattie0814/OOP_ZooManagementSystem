@@ -20,9 +20,6 @@ public class ItemDataAdapter implements JsonSerializer<ItemData>, JsonDeserializ
             MedicineItem medicine = (MedicineItem) item;
 
             json.addProperty("expiry", medicine.getExpiry());
-
-        } else if (item instanceof MiscellaneousItem) {
-            // No additional properties
         }
 
         return json;

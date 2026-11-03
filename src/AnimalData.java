@@ -1,18 +1,18 @@
-class AnimalData {
-    private String name;
-    private String species;
-    private String gender;
-    private String birthDate;
-    private String healthStatus;
-    private String type;
+public class AnimalData {
+    private final String name;
+    private final String species;
+    private final String gender;
+    private final String birthDate;
+    private final String enclosureId;
+    private final String healthStatus;
 
     public AnimalData(String name, String species, String gender, String birthDate,
-                      String type, String healthStatus) {
+                      String enclosureId, String healthStatus) {
         this.name = name;
         this.species = species;
         this.gender = gender;
-        this.type = type;
         this.birthDate = birthDate;
+        this.enclosureId = enclosureId;
         this.healthStatus = healthStatus;
     }
 
@@ -32,13 +32,16 @@ class AnimalData {
         return birthDate;
     }
 
-    public String getType() {return type;}
+    public String getEnclosureId() {
+        return enclosureId;
+    }
 
     public String getHealthStatus() {
         return healthStatus;
     }
 
-    public String getAnimalType() {
-        return "AnimalData";
+    @Override
+    public String toString() {
+        return name;
     }
 }
