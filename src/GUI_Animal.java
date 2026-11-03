@@ -1,137 +1,16 @@
+import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.RowFilter;
-import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
-class Animal {
-    private String name;
-    private String species;
-    private String gender;
-    private String birthDate;
-    private String enclosureId;
-    private String healthStatus;
-
-    public Animal(String name, String species, String gender, String birthDate,
-                  String enclosureId, String healthStatus) {
-        this.name = name;
-        this.species = species;
-        this.gender = gender;
-        this.birthDate = birthDate;
-        this.enclosureId = enclosureId;
-        this.healthStatus = healthStatus;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getSpecies() {
-        return species;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public String getBirthDate() {
-        return birthDate;
-    }
-
-    public String getEnclosureId() {
-        return enclosureId;
-    }
-
-    public String getHealthStatus() {
-        return healthStatus;
-    }
-
-    public String getAnimalType() {
-        return "Animal";
-    }
-}
-
-class Lion extends Animal {
-    public Lion(String name, String gender, String birthDate,
-                String enclosureId, String healthStatus) {
-        super(name, "African Lion", gender, birthDate, enclosureId, healthStatus);
-    }
-
-    @Override
-    public String getAnimalType() {
-        return "Lion";
-    }
-}
-
-class Bear extends Animal {
-    public Bear(String name, String gender, String birthDate,
-                String enclosureId, String healthStatus) {
-        super(name, "Black Bear", gender, birthDate, enclosureId, healthStatus);
-    }
-
-    @Override
-    public String getAnimalType() {
-        return "Bear";
-    }
-}
-
-class Enclosure {
-    private String id;
-    private String type;
-    private int capacity;
-    private List<String> currentOccupants;
-
-    public Enclosure(String id, String type, int capacity) {
-        this.id = id;
-        this.type = type;
-        this.capacity = capacity;
-        this.currentOccupants = new ArrayList<>();
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public int getCapacity() {
-        return capacity;
-    }
-
-    public List<String> getCurrentOccupants() {
-        return currentOccupants;
-    }
-
-    public int getCurrentOccupantCount() {
-        return currentOccupants.size();
-    }
-}
-
-public class Animals extends JPanel {
-    private Map<String, Animal> animalMap = new LinkedHashMap<>();
-    private Map<String, Enclosure> enclosureMap = new LinkedHashMap<>();
+public class GUI_Animal extends JPanel {
+    private Map<String, AnimalData> animalMap = new LinkedHashMap<>();
+    private Map<String, EnclosureData> enclosureMap = new LinkedHashMap<>();
 
     private JButton registerAnimalButton;
     private JButton addEnclosureButton;
@@ -147,7 +26,7 @@ public class Animals extends JPanel {
     private CardLayout cardLayout;
     private JPanel mainPanel;
 
-    public Animals(CardLayout cardLayout, JPanel mainPanel) {
+    public GUI_Animal(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
 
@@ -161,7 +40,7 @@ public class Animals extends JPanel {
         searchField = new JTextField(20);
         topPanel.add(searchField);
 
-        registerAnimalButton = new JButton("Register Animal");
+        registerAnimalButton = new JButton("Register AnimalData");
         addEnclosureButton = new JButton("Add Enclosure");
         returnButton = new JButton("Return to Main");
 
@@ -220,7 +99,7 @@ public class Animals extends JPanel {
 
         enclosureTable.setRowSorter(enclosureSorter);
 
-        tabbedPane.addTab("Animals", new JScrollPane(animalTable));
+        tabbedPane.addTab("GUI_Animal", new JScrollPane(animalTable));
         tabbedPane.addTab("Enclosures", new JScrollPane(enclosureTable));
 
         searchField.getDocument().addDocumentListener(new DocumentListener() {
@@ -261,50 +140,53 @@ public class Animals extends JPanel {
     }
 
     private void loadDefaultData() {
-        Enclosure enc1 = new Enclosure("ENC-101", "Lion's Den", 2);
-        Enclosure enc2 = new Enclosure("ENC-102", "Naturalistic Habitat", 5);
+        EnclosureData enc1 = new EnclosureData("ENC-101", "Lion's Den", 2);
+        EnclosureData enc2 = new EnclosureData("ENC-102", "Naturalistic Habitat", 5);
 
         enclosureMap.put(enc1.getId(), enc1);
         enclosureMap.put(enc2.getId(), enc2);
 
-        Animal animal1 = new Lion(
+        AnimalData animalData1 = new AnimalData(
                 "Mufasa",
+                "Lion",
                 "Male",
                 "2019-05-12",
                 "ENC-101",
                 "Healthy"
         );
 
-        Animal animal2 = new Bear(
+        AnimalData animalData2 = new AnimalData(
                 "Tragen",
+                "Bear",
                 "Male",
                 "2021-08-20",
                 "ENC-102",
                 "Critical"
         );
 
-        animalMap.put(animal1.getName(), animal1);
-        animalMap.put(animal2.getName(), animal2);
+        animalMap.put(animalData1.getName(), animalData1);
+        animalMap.put(animalData2.getName(), animalData2);
 
-        enc1.getCurrentOccupants().add(animal1.getName());
-        enc2.getCurrentOccupants().add(animal2.getName());
+
+        enc1.addOccupant(animalData1.getName(), animalData1);
+        enc2.addOccupant(animalData2.getName(), animalData2);
 
         animalTableModel.addRow(new Object[]{
-                animal1.getName(),
-                animal1.getSpecies(),
-                animal1.getGender(),
-                animal1.getBirthDate(),
-                animal1.getEnclosureId(),
-                animal1.getHealthStatus()
+                animalData1.getName(),
+                animalData1.getSpecies(),
+                animalData1.getGender(),
+                animalData1.getBirthDate(),
+                animalData1.getType(),
+                animalData1.getHealthStatus()
         });
 
         animalTableModel.addRow(new Object[]{
-                animal2.getName(),
-                animal2.getSpecies(),
-                animal2.getGender(),
-                animal2.getBirthDate(),
-                animal2.getEnclosureId(),
-                animal2.getHealthStatus()
+                animalData2.getName(),
+                animalData2.getSpecies(),
+                animalData2.getGender(),
+                animalData2.getBirthDate(),
+                animalData2.getType(),
+                animalData2.getHealthStatus()
         });
 
         updateEnclosureTable();
@@ -362,7 +244,7 @@ public class Animals extends JPanel {
         int option = JOptionPane.showConfirmDialog(
                 this,
                 formPanel,
-                "Register Animal Details",
+                "Register AnimalData Details",
                 JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE
         );
@@ -385,13 +267,14 @@ public class Animals extends JPanel {
                 return;
             }
 
-            Animal animal;
+            AnimalData animalData;
 
             if (species.equalsIgnoreCase("Lion") ||
                     species.equalsIgnoreCase("African Lion")) {
 
-                animal = new Lion(
+                animalData = new AnimalData(
                         name,
+                        "Lion",
                         gender,
                         birthDate,
                         location,
@@ -401,8 +284,9 @@ public class Animals extends JPanel {
             } else if (species.equalsIgnoreCase("Bear") ||
                     species.equalsIgnoreCase("Black Bear")) {
 
-                animal = new Bear(
+                animalData = new AnimalData(
                         name,
+                        "Bear",
                         gender,
                         birthDate,
                         location,
@@ -411,7 +295,7 @@ public class Animals extends JPanel {
 
             } else {
 
-                animal = new Animal(
+                animalData = new AnimalData(
                         name,
                         species,
                         gender,
@@ -421,28 +305,26 @@ public class Animals extends JPanel {
                 );
             }
 
-            animalMap.put(name, animal);
+            animalMap.put(name, animalData);
 
             if (enclosureMap.containsKey(location)) {
-                enclosureMap.get(location)
-                        .getCurrentOccupants()
-                        .add(name);
+                enclosureMap.get(location).addOccupant(name, animalData);
             }
 
             animalTableModel.addRow(new Object[]{
-                    animal.getName(),
-                    animal.getSpecies(),
-                    animal.getGender(),
-                    animal.getBirthDate(),
-                    animal.getEnclosureId(),
-                    animal.getHealthStatus()
+                    animalData.getName(),
+                    animalData.getSpecies(),
+                    animalData.getGender(),
+                    animalData.getBirthDate(),
+                    animalData.getType(),
+                    animalData.getHealthStatus()
             });
 
             updateEnclosureTable();
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Animal Registered Successfully.",
+                    "AnimalData Registered Successfully.",
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE
             );
@@ -502,7 +384,7 @@ public class Animals extends JPanel {
                 return;
             }
 
-            Enclosure enclosure = new Enclosure(id, type, capacity);
+            EnclosureData enclosure = new EnclosureData(id, type, capacity);
 
             enclosureMap.put(id, enclosure);
 
@@ -520,7 +402,7 @@ public class Animals extends JPanel {
     private void updateEnclosureTable() {
         enclosureTableModel.setRowCount(0);
 
-        for (Enclosure enc : enclosureMap.values()) {
+        for (EnclosureData enc : enclosureMap.values()) {
             enclosureTableModel.addRow(new Object[]{
                     enc.getId(),
                     enc.getType(),

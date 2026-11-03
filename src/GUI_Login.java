@@ -1,32 +1,20 @@
-import java.awt.BorderLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
+import javax.swing.*;
+import java.awt.*;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
+import java.util.ArrayList;
 
 
-public class Login extends JFrame implements ActionListener
-{
+public class GUI_Login extends JFrame implements ActionListener {
     JTextField usernameField;
     JPasswordField passwordField;
 
     JButton loginButton;
 
-    // One main password for all accounts
-    String mainPassword = "zoo123";
+    ArrayList<UserData> users = Database.loadUsers();
 
-
-    public Login()
-    {
+    public GUI_Login() {
         JFrame frame = this;
 
         frame.setTitle("Zoo Management System");
@@ -34,14 +22,22 @@ public class Login extends JFrame implements ActionListener
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new BorderLayout());
 
-
         // Main panel
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel() {
+            private final Image backgroundImage = new ImageIcon(getClass().getResource("graphics/tempLoginImg.jpg")).getImage();
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+
         panel.setLayout(new GridLayout(5, 1, 10, 10));
         panel.setBorder(
                 BorderFactory.createEmptyBorder(150, 350, 150, 350)
         );
-
 
         // Title
         JLabel title = new JLabel(
@@ -101,8 +97,7 @@ public class Login extends JFrame implements ActionListener
 
 
     @Override
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
         if (e.getSource() == loginButton)
         {
             login();
@@ -110,58 +105,40 @@ public class Login extends JFrame implements ActionListener
     }
 
 
-    public void login()
-    {
+    public void login() {
         String username = usernameField.getText();
-        String password = new String(
-                passwordField.getPassword()
-        );
+        String password = new String(passwordField.getPassword());
 
-
-        if (username.equals("Admin") &&
-                password.equals(mainPassword))
-        {
-            User user = new Admin(username);
-
-            System.out.println("Admin logged in.");
-
-            new MainMenu(user);
-
-            dispose();
-        }
-
-        else if (username.equals("ZooKeeper") &&
-                password.equals(mainPassword))
-        {
-            User user = new ZooKeeper(username);
-
-            System.out.println("Zoo Keeper logged in.");
-
-            new MainMenu(user);
-
-            dispose();
-        }
-
-        else if (username.equals("Staff") &&
-                password.equals(mainPassword))
-        {
-            User user = new Staff(username);
-
-            System.out.println("Staff logged in.");
-
-            new MainMenu(user);
-
-            dispose();
-        }
-
-        else
-        {
+        if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Invalid username or password.",
+                    "Please enter your username and password.",
                     "Login Error",
                     JOptionPane.ERROR_MESSAGE
             );
+            return;
         }
+
+        for (UserData user : users) {
+
+            if (user.getUsername().equals(username)
+                    && user.getPassword().equals(password)) {
+
+                // Successful login
+                System.out.println(user.getType() + " logged in.");
+
+                new GUI_MainMenu(user);
+
+                dispose();
+                return;
+            }
+        }
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Invalid username or password.",
+                "Login Error",
+                JOptionPane.ERROR_MESSAGE
+        );
     }
 }

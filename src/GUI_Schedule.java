@@ -5,19 +5,18 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class Schedule extends JPanel {
-    private JLabel titleLabel;
-    private JLabel timeLabel;
+public class GUI_Schedule extends JPanel {
+    private final JLabel titleLabel;
+    private final JLabel timeLabel;
 
-    private Map<LocalDate, List<Task>> taskMap = new HashMap<>();
+    private HashMap<LocalDate, List<TaskData>> taskMap = new HashMap<>();
 
-    private CardLayout cardLayout;
-    private JPanel mainPanel;
-    private CalendarPanel calendarPanel;
+    private final CardLayout cardLayout;
+    private final JPanel mainPanel;
+    private final CalendarPanel calendarPanel;
 
-    public Schedule(CardLayout cardLayout, JPanel mainPanel) {
+    public GUI_Schedule(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
 
@@ -70,8 +69,8 @@ public class Schedule extends JPanel {
         optionsLabel.setFont(new Font("Arial", Font.BOLD, 20));
         optionsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JButton addButton = new JButton("Add Task Today");
-        JButton removeButton = new JButton("Remove Task");
+        JButton addButton = new JButton("Add TaskData Today");
+        JButton removeButton = new JButton("Remove TaskData");
         JButton notificationButton = new JButton("Notifications");
         JButton returnButton = new JButton("Return to Main");
 
@@ -101,32 +100,34 @@ public class Schedule extends JPanel {
     }
 
     public void promptAddTask(LocalDate date) {
-        String name = JOptionPane.showInputDialog(this, "Task Name for " + date + ":", "Add Task", JOptionPane.PLAIN_MESSAGE);
+        String name = JOptionPane.showInputDialog(this, "TaskData Name for " + date + ":", "Add TaskData", JOptionPane.PLAIN_MESSAGE);
         if (name == null || name.trim().isEmpty()) return;
 
-        String time = JOptionPane.showInputDialog(this, "Task Time (e.g., 09:00 AM):", "Add Task", JOptionPane.PLAIN_MESSAGE);
+        String time = JOptionPane.showInputDialog(this, "TaskData Time (e.g., 09:00 AM):", "Add TaskData", JOptionPane.PLAIN_MESSAGE);
+
         if (time == null || time.trim().isEmpty()) return;
 
         String[] repeatOptions = {"NONE", "DAILY", "WEEKLY", "MONTHLY"};
         String recurrence = (String) JOptionPane.showInputDialog(
-                this, "Repeat Frequency:", "Task Recurrence",
+                this, "Repeat Frequency:", "TaskData Recurrence",
                 JOptionPane.QUESTION_MESSAGE, null, repeatOptions, repeatOptions[0]
         );
+
         if (recurrence == null) recurrence = "NONE";
 
-        Task task = new Task(name, time, date, recurrence);
+        TaskData task = new TaskData(name, time, date, recurrence);
         addTask(task);
         calendarPanel.refreshCalendar();
     }
 
-    public void addTask(Task task) {
+    public void addTask(TaskData task) {
         taskMap.computeIfAbsent(task.getStartDate(), k -> new ArrayList<>()).add(task);
     }
 
-    public List<Task> getTasksForDate(LocalDate date) {
-        List<Task> result = new ArrayList<>();
-        for (List<Task> list : taskMap.values()) {
-            for (Task t : list) {
+    public List<TaskData> getTasksForDate(LocalDate date) {
+        List<TaskData> result = new ArrayList<>();
+        for (List<TaskData> list : taskMap.values()) {
+            for (TaskData t : list) {
                 if (t.occursOn(date)) {
                     result.add(t);
                 }
@@ -136,7 +137,7 @@ public class Schedule extends JPanel {
     }
 
     private void removeTaskDialog() {
-        List<Task> allTasks = new ArrayList<>();
+        List<TaskData> allTasks = new ArrayList<>();
         taskMap.values().forEach(allTasks::addAll);
 
         if (allTasks.isEmpty()) {
@@ -144,13 +145,13 @@ public class Schedule extends JPanel {
             return;
         }
 
-        Task selected = (Task) JOptionPane.showInputDialog(
-                this, "Select a task to remove:", "Remove Task",
+        TaskData selected = (TaskData) JOptionPane.showInputDialog(
+                this, "Select a task to remove:", "Remove TaskData",
                 JOptionPane.PLAIN_MESSAGE, null, allTasks.toArray(), allTasks.get(0)
         );
 
         if (selected != null) {
-            List<Task> list = taskMap.get(selected.getStartDate());
+            List<TaskData> list = taskMap.get(selected.getStartDate());
             if (list != null) {
                 list.remove(selected);
                 calendarPanel.refreshCalendar();
@@ -191,12 +192,12 @@ public class Schedule extends JPanel {
                 "PENG-GROUP (14 Birds)", "0.5ml Subcutaneous Dose", "Vet Tech Team B"
         ));
 
-        addTask(new MaintenanceTask(
+        addTask(new MiscellaneousTask(
                 "Reptile House Humidity & Heat Pump Service", "07:00 AM", today, "WEEKLY",
                 "Zone D - Tropical Reptile House", "Medium", "HVAC Pressure Gauges & Filters"
         ));
 
-        addTask(new MaintenanceTask(
+        addTask(new MiscellaneousTask(
                 "Primary Mesh Containment Inspection", "03:00 PM", today.plusDays(4), "MONTHLY",
                 "Aviary Enclosure 3", "High (Requires Bird Relocation)", "Safety Harness, Tension Tester"
         ));
@@ -211,9 +212,9 @@ class CalendarPanel extends JPanel {
     private JLabel monthLabel;
     private JPanel calendarGrid;
     private YearMonth currentMonth;
-    private Schedule parentSchedule;
+    private GUI_Schedule parentSchedule;
 
-    public CalendarPanel(Schedule parentSchedule) {
+    public CalendarPanel(GUI_Schedule parentSchedule) {
         this.parentSchedule = parentSchedule;
         this.currentMonth = YearMonth.now();
 
@@ -277,15 +278,17 @@ class CalendarPanel extends JPanel {
 
             if (dayNumber < 1 || dayNumber > daysInMonth) {
                 JPanel emptyCell = new JPanel();
-                emptyCell.setBackground(new Color(240, 240, 240));
+                emptyCell.setBackground(new Color(244, 134, 134));
                 calendarGrid.add(emptyCell);
-            } else {
+            }
+
+            else {
                 LocalDate date = currentMonth.atDay(dayNumber);
-                List<Task> tasksForDay = parentSchedule.getTasksForDate(date);
+                List<TaskData> tasksForDay = parentSchedule.getTasksForDate(date);
 
                 String buttonText = "<html><center><b>" + dayNumber + "</b>";
                 if (!tasksForDay.isEmpty()) {
-                    buttonText += "<br><font color='blue' size='2'>" + tasksForDay.size() + " Task(s)</font>";
+                    buttonText += "<br><font color='blue' size='2'>" + tasksForDay.size() + " TaskData(s)</font>";
                 }
                 buttonText += "</center></html>";
 
@@ -293,7 +296,7 @@ class CalendarPanel extends JPanel {
                 dayButton.setMargin(new Insets(2, 2, 2, 2));
 
                 if (date.equals(LocalDate.now())) {
-                    dayButton.setBackground(new Color(220, 240, 255));
+                    dayButton.setBackground(new Color(170, 244, 164));
                 }
 
                 dayButton.addActionListener(e -> handleDateClick(date, tasksForDay));
@@ -305,12 +308,12 @@ class CalendarPanel extends JPanel {
         calendarGrid.repaint();
     }
 
-    private void handleDateClick(LocalDate date, List<Task> tasks) {
-        StringBuilder msg = new StringBuilder("Schedule for " + date + ":\n\n");
+    private void handleDateClick(LocalDate date, List<TaskData> tasks) {
+        StringBuilder msg = new StringBuilder("GUI_Schedule for " + date + ":\n\n");
         if (tasks.isEmpty()) {
             msg.append("No tasks scheduled.");
         } else {
-            for (Task t : tasks) {
+            for (TaskData t : tasks) {
                 msg.append("• [").append(t.getType()).append("] ").append(t.getTaskName())
                         .append(" at ").append(t.getTaskTime()).append("\n")
                         .append("  Details: ").append(t.getDetails()).append("\n")
@@ -318,7 +321,7 @@ class CalendarPanel extends JPanel {
             }
         }
 
-        Object[] options = {"Add Task", "Close"};
+        Object[] options = {"Add TaskData", "Close"};
         int choice = JOptionPane.showOptionDialog(
                 this, msg.toString(), "Tasks on " + date,
                 JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE,
@@ -328,135 +331,5 @@ class CalendarPanel extends JPanel {
         if (choice == JOptionPane.YES_OPTION) {
             parentSchedule.promptAddTask(date);
         }
-    }
-}
-
-class Task {
-    private String taskName;
-    private String taskTime;
-    private LocalDate startDate;
-    private String recurrence; // NONE, DAILY, WEEKLY, MONTHLY
-
-    public Task(String taskName, String taskTime, LocalDate startDate, String recurrence) {
-        this.taskName = taskName;
-        this.taskTime = taskTime;
-        this.startDate = startDate;
-        this.recurrence = recurrence;
-    }
-
-    public String getTaskName() { return taskName; }
-    public String getTaskTime() { return taskTime; }
-    public LocalDate getStartDate() { return startDate; }
-    public String getRecurrence() { return recurrence; }
-
-    public String getType() {
-        return "General";
-    }
-
-    public String getDetails() {
-        return "No additional details.";
-    }
-
-    public boolean occursOn(LocalDate date) {
-        if (date.isBefore(startDate)) return false;
-        switch (recurrence) {
-            case "DAILY":
-                return true;
-            case "WEEKLY":
-                return startDate.getDayOfWeek() == date.getDayOfWeek();
-            case "MONTHLY":
-                return startDate.getDayOfMonth() == date.getDayOfMonth();
-            default:
-                return startDate.equals(date);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "[" + getType() + "] " + taskName + " (" + taskTime + ")";
-    }
-}
-
-class FoodTask extends Task {
-    private String animalSpecies;
-    private String enclosureZone;
-    private String dietNotes;
-
-    public FoodTask(String taskName, String taskTime, LocalDate startDate, String recurrence,
-                    String animalSpecies, String enclosureZone, String dietNotes) {
-        super(taskName, taskTime, startDate, recurrence);
-        this.animalSpecies = animalSpecies;
-        this.enclosureZone = enclosureZone;
-        this.dietNotes = dietNotes;
-    }
-
-    public String getAnimalSpecies() { return animalSpecies; }
-    public String getEnclosureZone() { return enclosureZone; }
-    public String getDietNotes() { return dietNotes; }
-
-    @Override
-    public String getType() {
-        return "Feeding & Diet";
-    }
-
-    @Override
-    public String getDetails() {
-        return "Species: " + animalSpecies + " | Zone: " + enclosureZone + " | Diet: " + dietNotes;
-    }
-}
-
-class MedicineTask extends Task {
-    private String animalID;
-    private String dosage;
-    private String administeredBy;
-
-    public MedicineTask(String taskName, String taskTime, LocalDate startDate, String recurrence,
-                        String animalID, String dosage, String administeredBy) {
-        super(taskName, taskTime, startDate, recurrence);
-        this.animalID = animalID;
-        this.dosage = dosage;
-        this.administeredBy = administeredBy;
-    }
-
-    public String getAnimalID() { return animalID; }
-    public String getDosage() { return dosage; }
-    public String getAdministeredBy() { return administeredBy; }
-
-    @Override
-    public String getType() {
-        return "Vet Care & Meds";
-    }
-
-    @Override
-    public String getDetails() {
-        return "Animal ID: " + animalID + " | Dosage: " + dosage + " | Staff: " + administeredBy;
-    }
-}
-
-class MaintenanceTask extends Task {
-    private String habitatLocation;
-    private String safetyRiskLevel; // Low, Medium, High (Requires Animal Relocation)
-    private String equipmentNeeded;
-
-    public MaintenanceTask(String taskName, String taskTime, LocalDate startDate, String recurrence,
-                           String habitatLocation, String safetyRiskLevel, String equipmentNeeded) {
-        super(taskName, taskTime, startDate, recurrence);
-        this.habitatLocation = habitatLocation;
-        this.safetyRiskLevel = safetyRiskLevel;
-        this.equipmentNeeded = equipmentNeeded;
-    }
-
-    public String getHabitatLocation() { return habitatLocation; }
-    public String getSafetyRiskLevel() { return safetyRiskLevel; }
-    public String getEquipmentNeeded() { return equipmentNeeded; }
-
-    @Override
-    public String getType() {
-        return "Habitat Maintenance";
-    }
-
-    @Override
-    public String getDetails() {
-        return "Location: " + habitatLocation + " | Risk Level: " + safetyRiskLevel + " | Tools: " + equipmentNeeded;
     }
 }

@@ -6,22 +6,22 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
 
-public class InventoryMenu extends JPanel implements ActionListener {
+public class GUI_Inventory extends JPanel implements ActionListener {
     private JButton addInventory;
     private JButton returnButton;
 
     // Category navigation buttons for inner CardLayout
     private JButton foodTabBtn;
     private JButton medicineTabBtn;
-    private JButton maintenanceTabBtn;
+    private JButton miscellaneousTabBtn;
 
-    // Inventory manager
+    // ItemData manager
     private InventoryManager manager;
 
     // Inner CardLayout for switching inventory categories
     private CardLayout tableCardLayout;
     private JPanel tableCardsPanel;
-    private String currentCategory = "Food";
+    private String currentCategory = "FoodItem";
 
     // Outer CardLayout controls
     private CardLayout cardLayout;
@@ -30,24 +30,24 @@ public class InventoryMenu extends JPanel implements ActionListener {
     // Tables
     private JTable foodTable;
     private JTable medicineTable;
-    private JTable maintenanceTable;
+    private JTable miscellaneousTable;
 
     // Table models
     private DefaultTableModel foodModel;
     private DefaultTableModel medicineModel;
-    private DefaultTableModel maintenanceModel;
+    private DefaultTableModel miscellaneousModel;
 
     // Search fields
     private JTextField foodSearch;
     private JTextField medicineSearch;
-    private JTextField maintenanceSearch;
+    private JTextField miscellaneousSearch;
 
     // Table sorters
     private TableRowSorter<DefaultTableModel> foodSorter;
     private TableRowSorter<DefaultTableModel> medicineSorter;
-    private TableRowSorter<DefaultTableModel> maintenanceSorter;
+    private TableRowSorter<DefaultTableModel> miscellaneousSorter;
 
-    public InventoryMenu(CardLayout cardLayout, JPanel mainPanel) {
+    public GUI_Inventory(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
         this.manager = new InventoryManager();
@@ -76,35 +76,35 @@ public class InventoryMenu extends JPanel implements ActionListener {
 
         // Category Switcher Buttons (Acts like tabs using CardLayout)
         JPanel categoryNav = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
-        foodTabBtn = new JButton("Food");
-        medicineTabBtn = new JButton("Medicine");
-        maintenanceTabBtn = new JButton("Maintenance");
+        foodTabBtn = new JButton("FoodItem");
+        medicineTabBtn = new JButton("MedicineItem");
+        miscellaneousTabBtn = new JButton("MiscellaneousItem");
 
-        foodTabBtn.addActionListener(e -> switchCategory("Food"));
-        medicineTabBtn.addActionListener(e -> switchCategory("Medicine"));
-        maintenanceTabBtn.addActionListener(e -> switchCategory("Maintenance"));
+        foodTabBtn.addActionListener(e -> switchCategory("FoodItem"));
+        medicineTabBtn.addActionListener(e -> switchCategory("MedicineItem"));
+        miscellaneousTabBtn.addActionListener(e -> switchCategory("MiscellaneousItem"));
 
         categoryNav.add(foodTabBtn);
         categoryNav.add(medicineTabBtn);
-        categoryNav.add(maintenanceTabBtn);
+        categoryNav.add(miscellaneousTabBtn);
 
         topPanel.add(leftActions, BorderLayout.WEST);
         topPanel.add(categoryNav, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
 
         // -------------------------------------------------------------
-        // CENTER CARDS PANEL (CardLayout for Food, Meds, Maintenance)
+        // CENTER CARDS PANEL (CardLayout for FoodItem, Meds, MiscellaneousItem)
         // -------------------------------------------------------------
         tableCardLayout = new CardLayout();
         tableCardsPanel = new JPanel(tableCardLayout);
 
-        // 1. Food Panel
+        // 1. FoodItem Panel
         JPanel foodPanel = new JPanel(new BorderLayout(0, 10));
         foodSearch = new JTextField();
-        foodSearch.setBorder(BorderFactory.createTitledBorder("Search Food Inventory"));
+        foodSearch.setBorder(BorderFactory.createTitledBorder("Search FoodItem ItemData"));
         foodPanel.add(foodSearch, BorderLayout.NORTH);
 
-        foodModel = new DefaultTableModel(new Object[]{"Name", "Stock", "Expiry", "Animals"}, 0) {
+        foodModel = new DefaultTableModel(new Object[]{"Name", "Stock", "Expiry", "GUI_Animal"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
@@ -113,10 +113,10 @@ public class InventoryMenu extends JPanel implements ActionListener {
         foodTable.setRowSorter(foodSorter);
         foodPanel.add(new JScrollPane(foodTable), BorderLayout.CENTER);
 
-        // 2. Medicine Panel
+        // 2. MedicineItem Panel
         JPanel medicinePanel = new JPanel(new BorderLayout(0, 10));
         medicineSearch = new JTextField();
-        medicineSearch.setBorder(BorderFactory.createTitledBorder("Search Medicine Inventory"));
+        medicineSearch.setBorder(BorderFactory.createTitledBorder("Search MedicineItem ItemData"));
         medicinePanel.add(medicineSearch, BorderLayout.NORTH);
 
         medicineModel = new DefaultTableModel(new Object[]{"Name", "Stock", "Expiry"}, 0) {
@@ -128,25 +128,25 @@ public class InventoryMenu extends JPanel implements ActionListener {
         medicineTable.setRowSorter(medicineSorter);
         medicinePanel.add(new JScrollPane(medicineTable), BorderLayout.CENTER);
 
-        // 3. Maintenance Panel
+        // 3. MiscellaneousItem Panel
         JPanel maintenancePanel = new JPanel(new BorderLayout(0, 10));
-        maintenanceSearch = new JTextField();
-        maintenanceSearch.setBorder(BorderFactory.createTitledBorder("Search Maintenance Inventory"));
-        maintenancePanel.add(maintenanceSearch, BorderLayout.NORTH);
+        miscellaneousSearch = new JTextField();
+        miscellaneousSearch.setBorder(BorderFactory.createTitledBorder("Search MiscellaneousItem ItemData"));
+        maintenancePanel.add(miscellaneousSearch, BorderLayout.NORTH);
 
-        maintenanceModel = new DefaultTableModel(new Object[]{"Name", "Stock"}, 0) {
+        miscellaneousModel = new DefaultTableModel(new Object[]{"Name", "Stock"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
-        maintenanceTable = new JTable(maintenanceModel);
-        maintenanceSorter = new TableRowSorter<>(maintenanceModel);
-        maintenanceTable.setRowSorter(maintenanceSorter);
-        maintenancePanel.add(new JScrollPane(maintenanceTable), BorderLayout.CENTER);
+        miscellaneousTable = new JTable(miscellaneousModel);
+        miscellaneousSorter = new TableRowSorter<>(miscellaneousModel);
+        miscellaneousTable.setRowSorter(miscellaneousSorter);
+        maintenancePanel.add(new JScrollPane(miscellaneousTable), BorderLayout.CENTER);
 
         // Add views to inner CardLayout
-        tableCardsPanel.add(foodPanel, "Food");
-        tableCardsPanel.add(medicinePanel, "Medicine");
-        tableCardsPanel.add(maintenancePanel, "Maintenance");
+        tableCardsPanel.add(foodPanel, "FoodItem");
+        tableCardsPanel.add(medicinePanel, "MedicineItem");
+        tableCardsPanel.add(maintenancePanel, "MiscellaneousItem");
 
         add(tableCardsPanel, BorderLayout.CENTER);
 
@@ -155,7 +155,7 @@ public class InventoryMenu extends JPanel implements ActionListener {
         // -------------------------------------------------------------
         addSearchListener(foodSearch, foodSorter);
         addSearchListener(medicineSearch, medicineSorter);
-        addSearchListener(maintenanceSearch, maintenanceSorter);
+        addSearchListener(miscellaneousSearch, miscellaneousSorter);
 
         loadPresetInventory();
     }
@@ -203,7 +203,7 @@ public class InventoryMenu extends JPanel implements ActionListener {
         formPanel.add(stockField, gbc);
 
         JTextField expiryField = null;
-        if (type.equals("Food") || type.equals("Medicine")) {
+        if (type.equals("FoodItem") || type.equals("MedicineItem")) {
             JLabel expiryLabel = new JLabel("Expiry:");
             expiryField = new JTextField(20);
             gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
@@ -213,8 +213,8 @@ public class InventoryMenu extends JPanel implements ActionListener {
         }
 
         JTextField animalsField = null;
-        if (type.equals("Food")) {
-            JLabel animalsLabel = new JLabel("Animals:");
+        if (type.equals("FoodItem")) {
+            JLabel animalsLabel = new JLabel("GUI_Animal:");
             animalsField = new JTextField(20);
             gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
             formPanel.add(animalsLabel, gbc);
@@ -252,23 +252,23 @@ public class InventoryMenu extends JPanel implements ActionListener {
                 return;
             }
 
-            if (type.equals("Food")) {
+            if (type.equals("FoodItem")) {
                 String expiry = finalExpiryField.getText().trim();
                 String animals = finalAnimalsField.getText().trim();
                 if (expiry.isEmpty() || animals.isEmpty()) {
                     JOptionPane.showMessageDialog(dialog, "Please fill in all fields.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                manager.addItem(new Food(name, stock, expiry, animals));
-            } else if (type.equals("Medicine")) {
+                manager.addItem(new FoodItem(name, stock, expiry, animals));
+            } else if (type.equals("MedicineItem")) {
                 String expiry = finalExpiryField.getText().trim();
                 if (expiry.isEmpty()) {
                     JOptionPane.showMessageDialog(dialog, "Please enter the expiry date.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                manager.addItem(new Medicine(name, stock, expiry));
-            } else if (type.equals("Maintenance")) {
-                manager.addItem(new Maintenance(name, stock));
+                manager.addItem(new MedicineItem(name, stock, expiry));
+            } else if (type.equals("MiscellaneousItem")) {
+                manager.addItem(new MiscellaneousItem(name, stock));
             }
 
             updateTables();
@@ -285,18 +285,18 @@ public class InventoryMenu extends JPanel implements ActionListener {
     private void updateTables() {
         foodModel.setRowCount(0);
         medicineModel.setRowCount(0);
-        maintenanceModel.setRowCount(0);
+        miscellaneousModel.setRowCount(0);
 
-        for (Inventory item : manager.getInventory().values()) {
-            if (item instanceof Food) {
-                Food food = (Food) item;
+        for (ItemData item : manager.getInventory().values()) {
+            if (item instanceof FoodItem) {
+                FoodItem food = (FoodItem) item;
                 foodModel.addRow(new Object[]{food.getName(), food.getStock(), food.getExpiry(), food.getAnimals()});
-            } else if (item instanceof Medicine) {
-                Medicine medicine = (Medicine) item;
+            } else if (item instanceof MedicineItem) {
+                MedicineItem medicine = (MedicineItem) item;
                 medicineModel.addRow(new Object[]{medicine.getName(), medicine.getStock(), medicine.getExpiry()});
-            } else if (item instanceof Maintenance) {
-                Maintenance maintenance = (Maintenance) item;
-                maintenanceModel.addRow(new Object[]{maintenance.getName(), maintenance.getStock()});
+            } else if (item instanceof MiscellaneousItem) {
+                MiscellaneousItem miscellaneous = (MiscellaneousItem) item;
+                miscellaneousModel.addRow(new Object[]{miscellaneous.getName(), miscellaneous.getStock()});
             }
         }
     }
@@ -319,88 +319,40 @@ public class InventoryMenu extends JPanel implements ActionListener {
     }
 
     private void loadPresetInventory() {
-        manager.addItem(new Food("Raw Meat (Beef & Poultry)", 450, "2026-11-15", "Tigers, Lions, Wolves"));
-        manager.addItem(new Food("Alfalfa Hay Bales", 120, "2027-03-01", "Giraffes, Zebras, Camels"));
-        manager.addItem(new Food("Fresh Fruit Basket (Apples/Bananas)", 85, "2026-10-25", "Monkeys, Parrots, Lemurs"));
-        manager.addItem(new Food("Capelin & Herrings (Frozen Fish)", 300, "2026-12-10", "Penguins, Sea Lions, Otters"));
-        manager.addItem(new Food("Eucalyptus Leaves", 40, "2026-10-18", "Koalas"));
+        manager.addItem(new FoodItem("Raw Meat (Beef & Poultry)", 450, "2026-11-15", "Tigers, Lions, Wolves"));
+        manager.addItem(new FoodItem("Alfalfa Hay Bales", 120, "2027-03-01", "Giraffes, Zebras, Camels"));
+        manager.addItem(new FoodItem("Fresh Fruit Basket (Apples/Bananas)", 85, "2026-10-25", "Monkeys, Parrots, Lemurs"));
+        manager.addItem(new FoodItem("Capelin & Herrings (Frozen Fish)", 300, "2026-12-10", "Penguins, Sea Lions, Otters"));
+        manager.addItem(new FoodItem("Eucalyptus Leaves", 40, "2026-10-18", "Koalas"));
 
-        manager.addItem(new Medicine("Multivitamin Chews (Large Animal)", 250, "2027-08-30"));
-        manager.addItem(new Medicine("Broad-Spectrum Antibiotics (100ml)", 45, "2027-01-15"));
-        manager.addItem(new Medicine("Rabies Vaccine Doses", 60, "2028-05-20"));
-        manager.addItem(new Medicine("Surgical Bandages & Antiseptic Wipes", 180, "2029-01-01"));
-        manager.addItem(new Medicine("Avian Flu Injections", 100, "2027-04-12"));
+        manager.addItem(new MedicineItem("Multivitamin Chews (Large AnimalData)", 250, "2027-08-30"));
+        manager.addItem(new MedicineItem("Broad-Spectrum Antibiotics (100ml)", 45, "2027-01-15"));
+        manager.addItem(new MedicineItem("Rabies Vaccine Doses", 60, "2028-05-20"));
+        manager.addItem(new MedicineItem("Surgical Bandages & Antiseptic Wipes", 180, "2029-01-01"));
+        manager.addItem(new MedicineItem("Avian Flu Injections", 100, "2027-04-12"));
 
-        manager.addItem(new Maintenance("Heavy-Duty Containment Netting (Meters)", 75));
-        manager.addItem(new Maintenance("HVAC Filter Replacements", 30));
-        manager.addItem(new Maintenance("Aquarium Water Testing Kits", 15));
-        manager.addItem(new Maintenance("Submersible Water Pumps", 8));
-        manager.addItem(new Maintenance("High-Tension Enclosure Wire Locks", 150));
+        manager.addItem(new MiscellaneousItem("Heavy-Duty Containment Netting (Meters)", 75));
+        manager.addItem(new MiscellaneousItem("HVAC Filter Replacements", 30));
+        manager.addItem(new MiscellaneousItem("Aquarium Water Testing Kits", 15));
+        manager.addItem(new MiscellaneousItem("Submersible Water Pumps", 8));
+        manager.addItem(new MiscellaneousItem("High-Tension Enclosure Wire Locks", 150));
 
         updateTables();
     }
 }
 
-// -------------------------------------------------------------
-// DOMAIN MODELS & MANAGER
-// -------------------------------------------------------------
-class Inventory {
-    private String name;
-    private int stock;
-
-    Inventory(String name, int stock) {
-        this.name = name;
-        this.stock = stock;
-    }
-
-    String getName() { return name; }
-    int getStock() { return stock; }
-    void setStock(int stock) { this.stock = stock; }
-}
-
-class Medicine extends Inventory {
-    private String expiry;
-
-    Medicine(String name, int stock, String expiry) {
-        super(name, stock);
-        this.expiry = expiry;
-    }
-
-    String getExpiry() { return expiry; }
-}
-
-class Maintenance extends Inventory {
-    Maintenance(String name, int stock) {
-        super(name, stock);
-    }
-}
-
-class Food extends Inventory {
-    private String expiry;
-    private String animals;
-
-    Food(String name, int stock, String expiry, String animals) {
-        super(name, stock);
-        this.expiry = expiry;
-        this.animals = animals;
-    }
-
-    String getExpiry() { return expiry; }
-    String getAnimals() { return animals; }
-}
-
 class InventoryManager {
-    private HashMap<String, Inventory> inventory;
+    private HashMap<String, ItemData> inventory;
 
     InventoryManager() {
         inventory = new HashMap<>();
     }
 
-    void addItem(Inventory item) {
+    void addItem(ItemData item) {
         inventory.put(item.getName(), item);
     }
 
-    Inventory getItem(String name) {
+    ItemData getItem(String name) {
         return inventory.get(name);
     }
 
@@ -408,7 +360,7 @@ class InventoryManager {
         inventory.remove(name);
     }
 
-    HashMap<String, Inventory> getInventory() {
+    HashMap<String, ItemData> getInventory() {
         return inventory;
     }
 }
