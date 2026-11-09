@@ -16,29 +16,17 @@ public class AnimalData {
         this.healthStatus = healthStatus;
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
 
-    public String getSpecies() {
-        return species;
-    }
+    public String getSpecies() { return species; }
 
-    public String getGender() {
-        return gender;
-    }
+    public String getGender() { return gender; }
 
-    public String getBirthDate() {
-        return birthDate;
-    }
+    public String getBirthDate() { return birthDate; }
 
-    public String getEnclosureId() {
-        return enclosureId;
-    }
+    public String getEnclosureId() { return enclosureId; }
 
-    public String getHealthStatus() {
-        return healthStatus;
-    }
+    public String getHealthStatus() { return healthStatus; }
 
     @Override
     public String toString() {

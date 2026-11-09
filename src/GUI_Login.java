@@ -11,6 +11,7 @@ public final class GUI_Login extends JFrame implements ActionListener {
     private final JButton loginButton;
 
     private final ArrayList<UserData> users = Database.loadUsers();
+    private final ArrayList<ItemData> inv = Database.loadInventory();
 
     public GUI_Login() {
         setTitle("Zoo Management System");

@@ -3,6 +3,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,9 +11,9 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class Database {
-    private static final String USER_PATH = "data/users.json";
-    private static final String INVENTORY_PATH = "data/inventory.json";
-    private static final String ENCLOSURE_PATH = "data/enclosure.json";
+    private static final String USER_PATH = "src/data/users.json";
+    private static final String INVENTORY_PATH = "src/data/inventory.json";
+    private static final String ENCLOSURE_PATH = "src/data/enclosure.json";
 
     private static final Gson gson = new GsonBuilder()
             .setPrettyPrinting()

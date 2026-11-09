@@ -16,9 +16,12 @@ public final class GUI_Schedule extends JPanel {
     private final JPanel mainPanel;
     private final CalendarPanel calendarPanel;
 
-    public GUI_Schedule(CardLayout cardLayout, JPanel mainPanel) {
+    private final UserData user;
+
+    public GUI_Schedule(CardLayout cardLayout, JPanel mainPanel, UserData user) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
+        this.user = user;
 
         setLayout(new BorderLayout());
 
@@ -51,7 +54,15 @@ public final class GUI_Schedule extends JPanel {
         timeLabel.setText(LocalDateTime.now().format(formatter));
         clockTimer = new Timer(1000, e -> timeLabel.setText(LocalDateTime.now().format(formatter)));
 
-        loadPresetData();
+        ArrayList<TaskData> schedule = user.getSchedule();
+
+        if (schedule != null) {
+            for (TaskData task : schedule) {
+                addTask(task);
+            }
+        }
+
+        calendarPanel.refreshCalendar();
     }
 
     @Override
@@ -128,6 +139,7 @@ public final class GUI_Schedule extends JPanel {
 
     private void addTask(TaskData task) {
         taskMap.computeIfAbsent(task.getStartDate(), k -> new ArrayList<>()).add(task);
+        System.out.print("Added Task for " + user.getUsername() + ": " + task.getDetails());
     }
 
     public List<TaskData> getTasksForDate(LocalDate date) {

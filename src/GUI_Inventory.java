@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -16,6 +17,8 @@ public final class GUI_Inventory extends JPanel {
     private final CardLayout tableCardLayout = new CardLayout();
     private final JPanel tableCardsPanel = new JPanel(tableCardLayout);
     private String currentCategory = FOOD;
+
+    private final ArrayList<ItemData> inventory = Database.loadInventory();
 
     private final DefaultTableModel foodModel = createModel("Name", "Stock", "Expiry", "Animals");
     private final DefaultTableModel medicineModel = createModel("Name", "Stock", "Expiry");
@@ -54,7 +57,13 @@ public final class GUI_Inventory extends JPanel {
 
         add(tableCardsPanel, BorderLayout.CENTER);
 
-        loadPresetInventory();
+        if (inventory != null) {
+            for (ItemData item : inventory) {
+                manager.addItem(item);
+            }
+        }
+
+        updateTables();
     }
 
     private static DefaultTableModel createModel(Object... columns) {

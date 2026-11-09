@@ -4,14 +4,12 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public final class GUI_Animal extends JPanel {
-    private final Map<String, AnimalData> animalMap = new LinkedHashMap<>();
-    private final Map<String, EnclosureData> enclosureMap = new LinkedHashMap<>();
+    private final Map<String, AnimalData> animalMap = new HashMap<>();
+    private final Map<String, EnclosureData> enclosureMap = new HashMap<>();
 
     private final JTextField searchField;
 
@@ -21,7 +19,11 @@ public final class GUI_Animal extends JPanel {
     private final DefaultTableModel enclosureTableModel;
     private final TableRowSorter<DefaultTableModel> enclosureSorter;
 
+    private final ArrayList<EnclosureData> enclosures;
+
     public GUI_Animal(CardLayout cardLayout, JPanel mainPanel) {
+        enclosures = Database.loadEnclosures();
+
         setLayout(new BorderLayout());
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
@@ -57,6 +59,7 @@ public final class GUI_Animal extends JPanel {
                 return false;
             }
         };
+
         JTable animalTable = new JTable(animalTableModel);
 
         animalSorter = new TableRowSorter<>(animalTableModel);
@@ -112,7 +115,19 @@ public final class GUI_Animal extends JPanel {
             }
         });
 
-        loadDefaultData();
+        if (enclosures != null) {
+            for (EnclosureData enc : enclosures) {
+                enclosureMap.put(enc.getId(), enc);
+
+                ArrayList<AnimalData> animals = enc.getCurrentOccupants();
+
+                if (animals != null) {
+                    for (AnimalData animal : animals) {
+                        addAnimal(animal);
+                    }
+                }
+            }
+        }
 
         add(topPanel, BorderLayout.NORTH);
         add(tabbedPane, BorderLayout.CENTER);
@@ -127,23 +142,13 @@ public final class GUI_Animal extends JPanel {
         enclosureSorter.setRowFilter(rowFilter);
     }
 
-    private void loadDefaultData() {
-        EnclosureData enc1 = new EnclosureData("ENC-101", "Lion's Den", 2);
-        EnclosureData enc2 = new EnclosureData("ENC-102", "Naturalistic Habitat", 5);
-
-        enclosureMap.put(enc1.getId(), enc1);
-        enclosureMap.put(enc2.getId(), enc2);
-
-        addAnimal(new AnimalData("Mufasa", "Lion", "Male", "2019-05-12", "ENC-101", "Healthy"));
-        addAnimal(new AnimalData("Tragen", "Bear", "Male", "2021-08-20", "ENC-102", "Critical"));
-    }
-
     private void addAnimal(AnimalData animal) {
         animalMap.put(animal.getName(), animal);
 
         EnclosureData enclosure = enclosureMap.get(animal.getEnclosureId());
+
         if (enclosure != null) {
-            enclosure.addOccupant(animal.getName(), animal);
+            enclosure.addOccupant(animal);
         }
 
         animalTableModel.addRow(new Object[]{
@@ -162,30 +167,15 @@ public final class GUI_Animal extends JPanel {
         JTextField nameField = new JTextField();
         JTextField speciesField = new JTextField();
 
-        JComboBox<String> genderBox =
-                new JComboBox<>(new String[]{"Male", "Female", "Unknown"});
+        JComboBox<String> genderBox = new JComboBox<>(new String[]{"Male", "Female", "Unknown"});
 
         JTextField birthDateField = new JTextField();
 
-        String[] availableEnclosures =
-                enclosureMap.keySet().toArray(new String[0]);
+        String[] availableEnclosures = enclosureMap.keySet().toArray(new String[0]);
 
-        JComboBox<String> enclosureBox =
-                new JComboBox<>(
-                        availableEnclosures.length > 0
-                                ? availableEnclosures
-                                : new String[]{"None"}
-                );
+        JComboBox<String> enclosureBox = new JComboBox<>(availableEnclosures.length > 0 ? availableEnclosures : new String[]{"None"});
 
-        JComboBox<String> healthBox =
-                new JComboBox<>(
-                        new String[]{
-                                "Healthy",
-                                "Under Treatment",
-                                "Quarantine",
-                                "Critical"
-                        }
-                );
+        JComboBox<String> healthBox = new JComboBox<>(new String[]{"Healthy", "Under Treatment", "Quarantine", "Critical"});
 
         JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
 
@@ -325,7 +315,7 @@ public final class GUI_Animal extends JPanel {
                     enc.getType(),
                     enc.getCapacity(),
                     enc.getCurrentOccupantCount(),
-                    enc.getCurrentOccupants().toString()
+                    enc.getCurrentOccupants()
             });
         }
     }

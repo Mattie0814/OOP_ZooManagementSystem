@@ -22,7 +22,7 @@ public final class GUI_MainMenu extends JFrame implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         mainPanel.add(createMenuPanel(), "MAIN");
-        mainPanel.add(new GUI_Schedule(cardLayout, mainPanel), "SCHEDULE");
+        mainPanel.add(new GUI_Schedule(cardLayout, mainPanel, user), "SCHEDULE");
         mainPanel.add(new GUI_Animal(cardLayout, mainPanel), "ANIMALS");
         mainPanel.add(new GUI_Inventory(cardLayout, mainPanel), "INVENTORY");
 

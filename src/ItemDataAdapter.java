@@ -26,12 +26,7 @@ public class ItemDataAdapter implements JsonSerializer<ItemData>, JsonDeserializ
     }
 
     @Override
-    public ItemData deserialize(
-            JsonElement element,
-            Type type,
-            JsonDeserializationContext context)
-            throws JsonParseException {
-
+    public ItemData deserialize(JsonElement element, Type type, JsonDeserializationContext context) throws JsonParseException {
         JsonObject json = element.getAsJsonObject();
 
         String name = json.get("name").getAsString();

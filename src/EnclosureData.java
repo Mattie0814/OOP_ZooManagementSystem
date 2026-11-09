@@ -1,17 +1,16 @@
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 public class EnclosureData {
-    private final String id;
-    private final String type;
-    private final int capacity;
-    private final Map<String, AnimalData> currentOccupants = new LinkedHashMap<>();
+    private String id;
+    private String type;
+    private int capacity;
+    private ArrayList<AnimalData> currentOccupants;
 
     public EnclosureData(String id, String type, int capacity) {
         this.id = id;
         this.type = type;
         this.capacity = capacity;
+        this.currentOccupants = new ArrayList<>();
     }
 
     public String getId() {
@@ -28,19 +27,18 @@ public class EnclosureData {
         return currentOccupants.size() >= capacity;
     }
 
-    public boolean addOccupant(String id, AnimalData animal) {
-        if (isFull() || currentOccupants.containsKey(id)) return false;
+    public void addOccupant(AnimalData animal) {
+        if (isFull()) return;
 
-        currentOccupants.put(id, animal);
-        return true;
+        currentOccupants.add(animal);
     }
 
-    public void removeOccupant(String id) {
-        currentOccupants.remove(id);
+    public void removeOccupant(AnimalData animal) {
+        currentOccupants.remove(animal);
     }
 
-    public Collection<AnimalData> getCurrentOccupants() {
-        return currentOccupants.values();
+    public ArrayList<AnimalData> getCurrentOccupants() {
+        return currentOccupants;
     }
 
     public int getCurrentOccupantCount() {
