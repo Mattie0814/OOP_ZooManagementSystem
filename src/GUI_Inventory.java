@@ -243,28 +243,6 @@ public final class GUI_Inventory extends JPanel {
             @Override public void changedUpdate(DocumentEvent e) { search(); }
         });
     }
-
-    private void loadPresetInventory() {
-        manager.addItem(new FoodItem("Raw Meat (Beef & Poultry)", 450, "2026-11-15", "Tigers, Lions, Wolves"));
-        manager.addItem(new FoodItem("Alfalfa Hay Bales", 120, "2027-03-01", "Giraffes, Zebras, Camels"));
-        manager.addItem(new FoodItem("Fresh Fruit Basket (Apples/Bananas)", 85, "2026-10-25", "Monkeys, Parrots, Lemurs"));
-        manager.addItem(new FoodItem("Capelin & Herrings (Frozen Fish)", 300, "2026-12-10", "Penguins, Sea Lions, Otters"));
-        manager.addItem(new FoodItem("Eucalyptus Leaves", 40, "2026-10-18", "Koalas"));
-
-        manager.addItem(new MedicineItem("Multivitamin Chews (Large Animals)", 250, "2027-08-30"));
-        manager.addItem(new MedicineItem("Broad-Spectrum Antibiotics (100ml)", 45, "2027-01-15"));
-        manager.addItem(new MedicineItem("Rabies Vaccine Doses", 60, "2028-05-20"));
-        manager.addItem(new MedicineItem("Surgical Bandages & Antiseptic Wipes", 180, "2029-01-01"));
-        manager.addItem(new MedicineItem("Avian Flu Injections", 100, "2027-04-12"));
-
-        manager.addItem(new MiscellaneousItem("Heavy-Duty Containment Netting (Meters)", 75));
-        manager.addItem(new MiscellaneousItem("HVAC Filter Replacements", 30));
-        manager.addItem(new MiscellaneousItem("Aquarium Water Testing Kits", 15));
-        manager.addItem(new MiscellaneousItem("Submersible Water Pumps", 8));
-        manager.addItem(new MiscellaneousItem("High-Tension Enclosure Wire Locks", 150));
-
-        updateTables();
-    }
 }
 
 class InventoryManager {

@@ -9,6 +9,7 @@ public final class GUI_MainMenu extends JFrame implements ActionListener {
     private final JButton animalButton = createMenuButton("ANIMAL DATABASE");
     private final JButton inventoryButton = createMenuButton("INVENTORY");
     private final JButton scheduleButton = createMenuButton("SCHEDULE / TASKS");
+    private final JButton staffButton = createMenuButton("STAFF REGISTRY");
     private final JButton logoutButton = createMenuButton("LOGOUT");
 
     private final CardLayout cardLayout = new CardLayout();
@@ -22,9 +23,14 @@ public final class GUI_MainMenu extends JFrame implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         mainPanel.add(createMenuPanel(), "MAIN");
-        mainPanel.add(new GUI_Schedule(cardLayout, mainPanel, user), "SCHEDULE");
         mainPanel.add(new GUI_Animal(cardLayout, mainPanel), "ANIMALS");
         mainPanel.add(new GUI_Inventory(cardLayout, mainPanel), "INVENTORY");
+        mainPanel.add(new GUI_Schedule(cardLayout, mainPanel, user), "SCHEDULE");
+
+        if (user.getType() == UserData.ROLE.ADMIN) {
+            mainPanel.add(new GUI_StaffRegistry(cardLayout, mainPanel, user), "STAFF");
+        }
+
 
         add(mainPanel);
 
@@ -51,12 +57,17 @@ public final class GUI_MainMenu extends JFrame implements ActionListener {
         JLabel welcome = new JLabel("Welcome, " + user.getUsername() + " (" + user.getType() + ")", JLabel.CENTER);
         welcome.setFont(new Font("Arial", Font.PLAIN, 22));
 
-        JPanel buttonPanel = new JPanel(new GridLayout(4, 1, 20, 20));
+        JPanel buttonPanel = new JPanel(new GridLayout(0, 1, 20, 20));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(40, 400, 80, 400));
 
         buttonPanel.add(animalButton);
         buttonPanel.add(inventoryButton);
         buttonPanel.add(scheduleButton);
+
+        if (user.getType() == UserData.ROLE.ADMIN) {
+            buttonPanel.add(staffButton);
+        }
+
         buttonPanel.add(logoutButton);
 
         JPanel centerPanel = new JPanel(new BorderLayout());
@@ -72,10 +83,23 @@ public final class GUI_MainMenu extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == animalButton) cardLayout.show(mainPanel, "ANIMALS");
-        else if (e.getSource() == inventoryButton) cardLayout.show(mainPanel, "INVENTORY");
-        else if (e.getSource() == scheduleButton) cardLayout.show(mainPanel, "SCHEDULE");
-        else if (e.getSource() == logoutButton) logout();
+        if (e.getSource() == animalButton) {
+            cardLayout.show(mainPanel, "ANIMALS");
+        }
+        else if (e.getSource() == inventoryButton) {
+            cardLayout.show(mainPanel, "INVENTORY");
+        }
+        else if (e.getSource() == scheduleButton) {
+            cardLayout.show(mainPanel, "SCHEDULE");
+        }
+        else if (e.getSource() == staffButton) {
+            if (user.getType() == UserData.ROLE.ADMIN) {
+                cardLayout.show(mainPanel, "STAFF");
+            }
+        }
+        else if (e.getSource() == logoutButton) {
+            logout();
+        }
     }
 
     private void logout() {

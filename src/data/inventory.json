@@ -1,0 +1,50 @@
+[
+  {
+    "type": "FOOD",
+    "name": "Lion Meat",
+    "stock": 100,
+    "expiry": "2027-03-15",
+    "animals": "Lions"
+  },
+  {
+    "type": "FOOD",
+    "name": "Elephant Hay",
+    "stock": 250,
+    "expiry": "2027-06-30",
+    "animals": "Elephants"
+  },
+  {
+    "type": "FOOD",
+    "name": "Monkey Bananas",
+    "stock": 80,
+    "expiry": "2026-12-20",
+    "animals": "Monkeys"
+  },
+  {
+    "type": "MEDICINE",
+    "name": "Vitamin Supplement",
+    "stock": 30,
+    "expiry": "2027-01-15"
+  },
+  {
+    "type": "MEDICINE",
+    "name": "Antibiotic Injection",
+    "stock": 15,
+    "expiry": "2027-08-10"
+  },
+  {
+    "type": "MISC",
+    "name": "Cleaning Brush",
+    "stock": 20
+  },
+  {
+    "type": "MISC",
+    "name": "Protective Gloves",
+    "stock": 100
+  },
+  {
+    "type": "MISC",
+    "name": "Water Hose",
+    "stock": 10
+  }
+]

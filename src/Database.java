@@ -53,9 +53,17 @@ public class Database {
     }
 
     private static <T> void saveData(String path, ArrayList<T> data) {
-        try (FileWriter writer = new FileWriter(path)) {
-            gson.toJson(data, writer);
+        try {
+            File file = new File(path);
+
+            file.getParentFile().mkdirs();
+
+            try (FileWriter writer = new FileWriter(file)) {
+                gson.toJson(data, writer);
+            }
+
             System.out.println(path + " successfully saved!");
+
         } catch (IOException e) {
             System.err.println("Failed to save " + path + ": " + e.getMessage());
         }

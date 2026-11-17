@@ -180,42 +180,6 @@ public final class GUI_Schedule extends JPanel {
     private void showNotifications() {
         JOptionPane.showMessageDialog(this, "Notification system coming soon.", "Notifications", JOptionPane.INFORMATION_MESSAGE);
     }
-
-    private void loadPresetData() {
-        LocalDate today = LocalDate.now();
-
-        addTask(new FoodTask(
-                "Morning Carnivore Feeding", "08:30 AM", today, "DAILY",
-                "Bengal Tigers", "Zone A - Cat Canyon", "25kg Raw Beef + Vitamin Powders"
-        ));
-
-        addTask(new FoodTask(
-                "Giraffe Canopy Forage Setup", "10:00 AM", today, "DAILY",
-                "Reticulated Giraffes", "Zone C - African Savannah", "Acacia Branches & Alfalfa Hay"
-        ));
-
-        addTask(new MedicineTask(
-                "Elephant Joint Supplement Administration", "09:15 AM", today, "WEEKLY",
-                "ELE-102 (Mahali)", "200g Glucosamine Chew", "Dr. Vance (Chief Vet)"
-        ));
-
-        addTask(new MedicineTask(
-                "Penguin Avian Flu Vaccination", "01:30 PM", today.plusDays(2), "NONE",
-                "PENG-GROUP (14 Birds)", "0.5ml Subcutaneous Dose", "Vet Tech Team B"
-        ));
-
-        addTask(new MiscellaneousTask(
-                "Reptile House Humidity & Heat Pump Service", "07:00 AM", today, "WEEKLY",
-                "Zone D - Tropical Reptile House", "Medium", "HVAC Pressure Gauges & Filters"
-        ));
-
-        addTask(new MiscellaneousTask(
-                "Primary Mesh Containment Inspection", "03:00 PM", today.plusDays(4), "MONTHLY",
-                "Aviary Enclosure 3", "High (Requires Bird Relocation)", "Safety Harness, Tension Tester"
-        ));
-
-        calendarPanel.refreshCalendar();
-    }
 }
 
 class CalendarPanel extends JPanel {

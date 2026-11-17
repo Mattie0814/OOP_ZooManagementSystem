@@ -1,0 +1,67 @@
+[
+  {
+    "username": "admin",
+    "password": "admin123",
+    "type": "ADMIN",
+    "schedule": [
+      {
+        "taskType": "GENERAL",
+        "taskName": "Review Monthly Reports",
+        "taskTime": "09:00 AM",
+        "startDate": "2026-11-05",
+        "recurrence": "NONE"
+      }
+    ]
+  },
+  {
+    "username": "staff01",
+    "password": "staff123",
+    "type": "STAFF",
+    "schedule": [
+      {
+        "taskType": "GENERAL",
+        "taskName": "Inventory Inspection",
+        "taskTime": "10:00 AM",
+        "startDate": "2026-11-05",
+        "recurrence": "DAILY"
+      }
+    ]
+  },
+  {
+    "username": "zookeeper01",
+    "password": "zoo123",
+    "type": "ZOOKEEPER",
+    "schedule": [
+      {
+        "taskType": "FOOD",
+        "taskName": "Feed the Lions",
+        "taskTime": "08:00 AM",
+        "startDate": "2026-11-05",
+        "recurrence": "DAILY",
+        "animalSpecies": "Lion",
+        "enclosureZone": "Zone A",
+        "dietNotes": "5 kg of meat per lion"
+      },
+      {
+        "taskType": "MEDICINE",
+        "taskName": "Administer Medicine to Elephant",
+        "taskTime": "02:00 PM",
+        "startDate": "2026-11-06",
+        "recurrence": "NONE",
+        "animalID": "A003",
+        "dosage": "10 ml",
+        "administeredBy": "Dr. Santos"
+      },
+      {
+        "taskType": "MISC",
+        "taskName": "Clean Monkey Habitat",
+        "taskTime": "04:00 PM",
+        "startDate": "2026-11-05",
+        "recurrence": "WEEKLY",
+        "habitatLocation": "Zone C",
+        "safetyRiskLevel": "LOW",
+        "equipmentNeeded": "Gloves, Brush, Disinfectant"
+      }
+    ]
+  }
+]

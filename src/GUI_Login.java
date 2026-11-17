@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.font.GlyphVector;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -35,8 +36,7 @@ public final class GUI_Login extends JFrame implements ActionListener {
         panel.setLayout(new GridLayout(5, 1, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(150, 350, 150, 350));
 
-        JLabel title = new JLabel("ZOO MANAGEMENT SYSTEM", JLabel.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 30));
+        JLabel title = new OutlinedLabel("ZOOTRAK");
 
         usernameField = new JTextField();
         usernameField.setFont(new Font("Arial", Font.PLAIN, 20));
@@ -89,5 +89,39 @@ public final class GUI_Login extends JFrame implements ActionListener {
 
         JOptionPane.showMessageDialog(this, "Invalid username or password.",
                 "Login Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+
+class OutlinedLabel extends JLabel {
+    public OutlinedLabel(String text) {
+        super(text, JLabel.CENTER);
+        setFont(new Font("Arial", Font.BOLD, 30));
+        setForeground(Color.WHITE);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g.create();
+
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        FontMetrics fm = g2.getFontMetrics(getFont());
+
+        int x = (getWidth() - fm.stringWidth(getText())) / 2;
+        int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+
+        GlyphVector gv = getFont().createGlyphVector(g2.getFontRenderContext(), getText());
+
+        Shape textShape = gv.getOutline(x, y);
+
+        g2.setColor(Color.BLACK);
+        g2.setStroke(new BasicStroke(5));
+        g2.draw(textShape);
+
+        g2.setColor(Color.WHITE);
+        g2.fill(textShape);
+
+        g2.dispose();
     }
 }
