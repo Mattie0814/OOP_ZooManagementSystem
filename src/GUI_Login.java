@@ -12,7 +12,6 @@ public final class GUI_Login extends JFrame implements ActionListener {
     private final JButton loginButton;
 
     private final ArrayList<UserData> users = Database.loadUsers();
-    private final ArrayList<ItemData> inv = Database.loadInventory();
 
     public GUI_Login() {
         setTitle("Zoo Management System");
@@ -102,26 +101,26 @@ class OutlinedLabel extends JLabel {
 
     @Override
     protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
+        Graphics2D g2d = (Graphics2D) g.create();
 
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-        FontMetrics fm = g2.getFontMetrics(getFont());
+        FontMetrics fm = g2d.getFontMetrics(getFont());
 
         int x = (getWidth() - fm.stringWidth(getText())) / 2;
         int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
 
-        GlyphVector gv = getFont().createGlyphVector(g2.getFontRenderContext(), getText());
+        GlyphVector gv = getFont().createGlyphVector(g2d.getFontRenderContext(), getText());
 
         Shape textShape = gv.getOutline(x, y);
 
-        g2.setColor(Color.BLACK);
-        g2.setStroke(new BasicStroke(5));
-        g2.draw(textShape);
+        g2d.setColor(Color.BLACK);
+        g2d.setStroke(new BasicStroke(5));
+        g2d.draw(textShape);
 
-        g2.setColor(Color.WHITE);
-        g2.fill(textShape);
+        g2d.setColor(Color.WHITE);
+        g2d.fill(textShape);
 
-        g2.dispose();
+        g2d.dispose();
     }
 }

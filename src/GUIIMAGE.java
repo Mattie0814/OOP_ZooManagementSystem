@@ -4,7 +4,6 @@ import java.awt.*;
 import java.io.File;
 
 public class GUIIMAGE extends JFrame {
-
     private final JLabel imageLabel;
     private final JButton browseButton;
 

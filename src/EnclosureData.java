@@ -1,47 +1,46 @@
-import java.util.*;
+import java.util.ArrayList;
 
 public class EnclosureData {
     private String id;
-    private String type;
+    private String name;
     private int capacity;
-    private ArrayList<AnimalData> currentOccupants;
+    private ArrayList<AnimalData> animals = new ArrayList<>();
 
-    public EnclosureData(String id, String type, int capacity) {
+    public EnclosureData(String id, String name, int capacity) {
         this.id = id;
-        this.type = type;
+        this.name = name;
         this.capacity = capacity;
-        this.currentOccupants = new ArrayList<>();
     }
 
-    public String getId() {
-        return id;
+    private ArrayList<AnimalData> ensureOccupantsList() {
+        if (animals == null) {
+            animals = new ArrayList<>();
+        }
+        return animals;
     }
-    public String getType() {
-        return type;
-    }
-    public int getCapacity() {
-        return capacity;
-    }
+
+    public String getId() { return id; }
+    public String getName() { return name; }
+    public int getCapacity() { return capacity; }
 
     public boolean isFull() {
-        return currentOccupants.size() >= capacity;
+        return getCurrentOccupantCount() >= capacity;
     }
 
     public void addOccupant(AnimalData animal) {
-        if (isFull()) return;
-
-        currentOccupants.add(animal);
+        if (animal == null || isFull()) return;
+        ensureOccupantsList().add(animal);
     }
 
     public void removeOccupant(AnimalData animal) {
-        currentOccupants.remove(animal);
+        ensureOccupantsList().remove(animal);
     }
 
     public ArrayList<AnimalData> getCurrentOccupants() {
-        return currentOccupants;
+        return ensureOccupantsList();
     }
 
     public int getCurrentOccupantCount() {
-        return currentOccupants.size();
+        return ensureOccupantsList().size();
     }
 }

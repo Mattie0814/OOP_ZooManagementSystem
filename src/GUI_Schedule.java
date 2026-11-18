@@ -5,6 +5,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+
 
 public final class GUI_Schedule extends JPanel {
     private final JLabel timeLabel;
@@ -54,11 +59,9 @@ public final class GUI_Schedule extends JPanel {
         timeLabel.setText(LocalDateTime.now().format(formatter));
         clockTimer = new Timer(1000, e -> timeLabel.setText(LocalDateTime.now().format(formatter)));
 
-        ArrayList<TaskData> schedule = user.getSchedule();
-
-        if (schedule != null) {
-            for (TaskData task : schedule) {
-                addTask(task);
+        if (user != null && user.getSchedule() != null) {
+            for (TaskData task : user.getSchedule()) {
+                loadTaskIntoMap(task);
             }
         }
 
@@ -119,27 +122,137 @@ public final class GUI_Schedule extends JPanel {
     }
 
     public void promptAddTask(LocalDate date) {
-        String name = JOptionPane.showInputDialog(this, "Task Name for " + date + ":", "Add Task", JOptionPane.PLAIN_MESSAGE);
-        if (name == null || name.trim().isEmpty()) return;
+        JTextField nameField = new JTextField(15);
+        TimeInputPanel timeInputPanel = new TimeInputPanel();
 
-        String time = JOptionPane.showInputDialog(this, "Task Time (e.g., 09:00 AM):", "Add Task", JOptionPane.PLAIN_MESSAGE);
-        if (time == null || time.trim().isEmpty()) return;
+        String[] repeatOptions = {"NONE", "DAILY", "WEEKLY", "MONTHLY", "INTERVAL"};
+        JComboBox<String> recurrenceBox = new JComboBox<>(repeatOptions);
 
-        String[] repeatOptions = {"NONE", "DAILY", "WEEKLY", "MONTHLY"};
-        String recurrence = (String) JOptionPane.showInputDialog(
-                this, "Repeat Frequency:", "Task Recurrence",
-                JOptionPane.QUESTION_MESSAGE, null, repeatOptions, repeatOptions[0]
+        // Interval components (hidden by default)
+        JLabel intervalLabel = new JLabel("Repeat Every (Days):");
+        JTextField intervalField = createNumericTextField(10);
+        intervalLabel.setVisible(false);
+        intervalField.setVisible(false);
+
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        formPanel.add(new JLabel("Task Name:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(nameField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        formPanel.add(new JLabel("Task Time:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(timeInputPanel, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2;
+        formPanel.add(new JLabel("Recurrence:"), gbc);
+        gbc.gridx = 1;
+        formPanel.add(recurrenceBox, gbc);
+
+        // Row 3: Dynamic Interval Field
+        gbc.gridx = 0; gbc.gridy = 3;
+        formPanel.add(intervalLabel, gbc);
+        gbc.gridx = 1;
+        formPanel.add(intervalField, gbc);
+
+        // Toggle interval input visibility and resize dialog when selection changes
+        recurrenceBox.addActionListener(e -> {
+            boolean isInterval = "INTERVAL".equals(recurrenceBox.getSelectedItem());
+            intervalLabel.setVisible(isInterval);
+            intervalField.setVisible(isInterval);
+
+            if (!isInterval) {
+                intervalField.setText("");
+            }
+
+            formPanel.revalidate();
+            formPanel.repaint();
+
+            Window dialogWindow = SwingUtilities.getWindowAncestor(formPanel);
+            if (dialogWindow != null) {
+                dialogWindow.pack();
+            }
+        });
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                formPanel,
+                "Add Task for " + date,
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
         );
 
-        if (recurrence == null) recurrence = "NONE";
+        if (result != JOptionPane.OK_OPTION) return;
 
-        addTask(new TaskData(name.trim(), time.trim(), date, recurrence));
+        String name = nameField.getText().trim();
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Task name cannot be empty.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String time = timeInputPanel.getFormattedTime();
+        String recurrence = (String) recurrenceBox.getSelectedItem();
+
+        TaskData newTask;
+        if ("INTERVAL".equals(recurrence)) {
+            String intervalText = intervalField.getText().trim();
+            if (intervalText.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter an interval in days.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            int intervalDays = Integer.parseInt(intervalText);
+            if (intervalDays <= 0) {
+                JOptionPane.showMessageDialog(this, "Interval must be at least 1 day.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            newTask = new TaskData(name, time, date, recurrence, intervalDays);
+        } else {
+            newTask = new TaskData(name, time, date, recurrence);
+        }
+
+        addTask(newTask);
         calendarPanel.refreshCalendar();
     }
 
-    private void addTask(TaskData task) {
+    private JTextField createNumericTextField(int columns) {
+        JTextField field = new JTextField(columns);
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+                if (string != null && string.matches("\\d+")) {
+                    super.insertString(fb, offset, string, attr);
+                }
+            }
+
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                if (text != null && text.matches("\\d*")) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+        });
+        return field;
+    }
+
+    private void loadTaskIntoMap(TaskData task) {
         taskMap.computeIfAbsent(task.getStartDate(), k -> new ArrayList<>()).add(task);
-        System.out.print("Added Task for " + user.getUsername() + ": " + task.getDetails());
+    }
+
+    private void addTask(TaskData task) {
+        loadTaskIntoMap(task);
+        if (user != null) {
+            if (user.getSchedule() != null) {
+                user.getSchedule().add(task);
+            }
+            System.out.println("Added Task for " + user.getUsername() + ": " + task.getDetails());
+        }
     }
 
     public List<TaskData> getTasksForDate(LocalDate date) {
@@ -172,8 +285,11 @@ public final class GUI_Schedule extends JPanel {
             List<TaskData> list = taskMap.get(selected.getStartDate());
             if (list != null) {
                 list.remove(selected);
-                calendarPanel.refreshCalendar();
             }
+            if (user != null && user.getSchedule() != null) {
+                user.getSchedule().remove(selected);
+            }
+            calendarPanel.refreshCalendar();
         }
     }
 
@@ -201,8 +317,6 @@ class CalendarPanel extends JPanel {
         centerPanel.add(calendarGrid, BorderLayout.CENTER);
 
         add(centerPanel, BorderLayout.CENTER);
-
-        refreshCalendar();
     }
 
     private void createHeader() {
@@ -250,9 +364,7 @@ class CalendarPanel extends JPanel {
                 JPanel emptyCell = new JPanel();
                 emptyCell.setBackground(new Color(244, 134, 134));
                 calendarGrid.add(emptyCell);
-            }
-
-            else {
+            } else {
                 LocalDate date = currentMonth.atDay(dayNumber);
                 List<TaskData> tasksForDay = parentSchedule.getTasksForDate(date);
 
@@ -301,5 +413,48 @@ class CalendarPanel extends JPanel {
         if (choice == JOptionPane.YES_OPTION) {
             parentSchedule.promptAddTask(date);
         }
+    }
+}
+
+class TimeInputPanel extends JPanel {
+    private final JComboBox<String> hourBox;
+    private final JComboBox<String> minuteBox;
+    private final JComboBox<String> amPmBox;
+
+    public TimeInputPanel() {
+        setLayout(new FlowLayout(FlowLayout.LEFT, 4, 0));
+
+        String[] hours = new String[12];
+        for (int i = 0; i < 12; i++) hours[i] = String.format("%02d", i + 1);
+
+        String[] minutes = new String[60];
+        for (int i = 0; i < 60; i++) minutes[i] = String.format("%02d", i);
+
+        hourBox = createInputBox(hours);
+        minuteBox = createInputBox(minutes);
+        amPmBox = createInputBox(new String[]{"AM", "PM"});
+
+        LocalTime now = LocalTime.now();
+        int currentHour = now.getHour() % 12;
+        hourBox.setSelectedIndex(currentHour == 0 ? 11 : currentHour - 1);
+        minuteBox.setSelectedIndex(now.getMinute());
+        amPmBox.setSelectedItem(now.getHour() >= 12 ? "PM" : "AM");
+
+        add(hourBox);
+        add(new JLabel(":"));
+        add(minuteBox);
+        add(amPmBox);
+    }
+
+    public String getFormattedTime() {
+        return hourBox.getSelectedItem() + ":" + minuteBox.getSelectedItem() + " " + amPmBox.getSelectedItem();
+    }
+
+    private JComboBox<String> createInputBox(String[] items) {
+        JComboBox<String> box = new JComboBox<>(items);
+        box.setFont(new Font("SansSerif", Font.BOLD, 13));
+        box.setBackground(new Color(248, 250, 252));
+        box.setFocusable(false);
+        return box;
     }
 }
