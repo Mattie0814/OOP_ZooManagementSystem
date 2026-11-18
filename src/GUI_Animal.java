@@ -17,6 +17,7 @@ public final class GUI_Animal extends JPanel {
 
     private final JTextField searchField;
 
+    private final JTable animalTable;
     private final DefaultTableModel animalTableModel;
     private final TableRowSorter<DefaultTableModel> animalSorter;
 
@@ -39,16 +40,19 @@ public final class GUI_Animal extends JPanel {
 
         JButton clearSearchButton = new JButton("Clear");
         JButton registerAnimalButton = new JButton("Register Animal");
+        JButton updateAnimalButton = new JButton("Update Animal");
         JButton addEnclosureButton = new JButton("Add Enclosure");
         JButton returnButton = new JButton("Return to Main");
 
         clearSearchButton.addActionListener(e -> searchField.setText(""));
         registerAnimalButton.addActionListener(e -> openAnimalRegistrationForm());
+        updateAnimalButton.addActionListener(e -> openAnimalUpdateForm());
         addEnclosureButton.addActionListener(e -> openAddEnclosureForm());
         returnButton.addActionListener(e -> cardLayout.show(mainPanel, "MAIN"));
 
         topPanel.add(clearSearchButton);
         topPanel.add(registerAnimalButton);
+        topPanel.add(updateAnimalButton);
         topPanel.add(addEnclosureButton);
         topPanel.add(returnButton);
 
@@ -252,6 +256,149 @@ public final class GUI_Animal extends JPanel {
         JOptionPane.showMessageDialog(
                 this,
                 "Animal Registered Successfully.",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    private void openAnimalUpdateForm() {
+        int viewRow = animalTable.getSelectedRow();
+        if (viewRow < 0) {
+            showError("Please select an animal in the table first.");
+            return;
+        }
+
+        int modelRow = animalTable.convertRowIndexToModel(viewRow);
+        String name = (String) animalTableModel.getValueAt(modelRow, 0);
+        AnimalData animal = animalMap.get(name.toLowerCase());
+        if (animal == null) {
+            showError("Could not find the selected animal.");
+            return;
+        }
+
+        JTextField nameField = new JTextField(animal.getName());
+        nameField.setEditable(false);
+        JTextField speciesField = new JTextField(animal.getSpecies());
+        JComboBox<String> genderBox = new JComboBox<>(new String[]{"Male", "Female", "Unknown"});
+        genderBox.setSelectedItem(animal.getGender());
+        JTextField birthDateField = new JTextField(animal.getBirthDate());
+        JComboBox<String> enclosureBox = new JComboBox<>(enclosureMap.keySet().toArray(new String[0]));
+        enclosureBox.setSelectedItem(animal.getEnclosureId());
+        JComboBox<String> healthBox = new JComboBox<>(new String[]{"Healthy", "Under Treatment", "Quarantine", "Critical"});
+        healthBox.setSelectedItem(animal.getHealthStatus());
+
+        JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
+        formPanel.add(new JLabel("Name:"));
+        formPanel.add(nameField);
+        formPanel.add(new JLabel("Species:"));
+        formPanel.add(speciesField);
+        formPanel.add(new JLabel("Gender:"));
+        formPanel.add(genderBox);
+        formPanel.add(new JLabel("Birth Date (YYYY-MM-DD):"));
+        formPanel.add(birthDateField);
+        formPanel.add(new JLabel("Cage/Enclosure Location:"));
+        formPanel.add(enclosureBox);
+        formPanel.add(new JLabel("Health Status:"));
+        formPanel.add(healthBox);
+
+        int option = JOptionPane.showConfirmDialog(
+                this, formPanel, "Update Animal Details",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (option != JOptionPane.OK_OPTION) return;
+
+        String species = speciesField.getText().trim();
+        String gender = (String) genderBox.getSelectedItem();
+        String birthDate = birthDateField.getText().trim();
+        String newEnclosureId = (String) enclosureBox.getSelectedItem();
+        String healthStatus = (String) healthBox.getSelectedItem();
+
+        if (species.isEmpty()) {
+            showError("Species is required!");
+            return;
+        }
+
+        if (!birthDate.isEmpty()) {
+            try {
+                LocalDate.parse(birthDate);
+            } catch (DateTimeParseException ex) {
+                showError("Birth Date must be a valid date in YYYY-MM-DD format.");
+                return;
+            }
+        }
+
+        // Handle enclosure change
+        String oldEnclosureId = animal.getEnclosureId();
+        if (!Objects.equals(oldEnclosureId, newEnclosureId)) {
+            EnclosureData newEnc = enclosureMap.get(newEnclosureId);
+            if (newEnc == null) {
+                showError("Selected enclosure does not exist.");
+                return;
+            }
+            if (newEnc.isFull()) {
+                showError("Enclosure " + newEnclosureId + " is already at full capacity.");
+                return;
+            }
+            EnclosureData oldEnc = enclosureMap.get(oldEnclosureId);
+            if (oldEnc != null) oldEnc.removeOccupant(animal);
+            newEnc.addOccupant(animal);
+            animal.setEnclosureId(newEnclosureId);
+        }
+
+        animal.setSpecies(species);
+        animal.setGender(gender);
+        animal.setBirthDate(birthDate);
+        animal.setHealthStatus(healthStatus);
+
+        // Refresh table row
+        animalTableModel.setValueAt(animal.getSpecies(), modelRow, 1);
+        animalTableModel.setValueAt(animal.getGender(), modelRow, 2);
+        animalTableModel.setValueAt(animal.getBirthDate(), modelRow, 3);
+        animalTableModel.setValueAt(animal.getEnclosureId(), modelRow, 4);
+        animalTableModel.setValueAt(animal.getHealthStatus(), modelRow, 5);
+
+        updateEnclosureTable();
+        Database.saveEnclosures(enclosures);
+
+        JOptionPane.showMessageDialog(this, "Animal Updated Successfully.",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+
+
+        // Handle enclosure change
+        String oldEnclosureId = animal.getEnclosureId();
+        if (!Objects.equals(oldEnclosureId, newEnclosureId)) {
+            EnclosureData newEnc = enclosureMap.get(newEnclosureId);
+            if (newEnc == null) {
+                showError("Selected enclosure does not exist.");
+                return;
+            }
+            if (newEnc.isFull()) {
+                showError("Enclosure " + newEnclosureId + " is already at full capacity.");
+                return;
+            }
+            EnclosureData oldEnc = enclosureMap.get(oldEnclosureId);
+            if (oldEnc != null) oldEnc.removeOccupant(animal);
+            newEnc.addOccupant(animal);
+            animal.setEnclosureId(newEnclosureId);
+        }
+
+        animal.setSpecies(species);
+        animal.setGender(gender);
+        animal.setBirthDate(birthDate);
+        animal.setHealthStatus(healthStatus);
+
+        // Refresh the table row
+        animalTableModel.setValueAt(animal.getSpecies(), modelRow, 1);
+        animalTableModel.setValueAt(animal.getGender(), modelRow, 2);
+        animalTableModel.setValueAt(animal.getBirthDate(), modelRow, 3);
+        animalTableModel.setValueAt(animal.getEnclosureId(), modelRow, 4);
+        animalTableModel.setValueAt(animal.getHealthStatus(), modelRow, 5);
+
+        updateEnclosureTable();
+        Database.saveEnclosures(enclosures);
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Animal Information Updated Successfully.",
                 "Success",
                 JOptionPane.INFORMATION_MESSAGE
         );
