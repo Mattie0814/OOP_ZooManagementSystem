@@ -1,9 +1,9 @@
 public class AnimalData {
-    private final String name;
-    private final String species;
-    private final String gender;
-    private final String birthDate;
-    private final String healthStatus;
+    private String name;
+    private String species;
+    private String gender;
+    private String birthDate;
+    private String healthStatus;
 
     public AnimalData(String name, String species, String gender, String birthDate, String healthStatus) {
         this.name = name;
@@ -13,18 +13,53 @@ public class AnimalData {
         this.healthStatus = healthStatus;
     }
 
+    public void setName(String name){
+        if (name.equals("")){
+            return;
+        }
+
+        this.name = name;
+    }
+
     public String getName() { return name; }
+
+    public void setSpecies(String species){
+        if (species.equals("")){
+            return;
+        }
+
+        this.species = species;
+    }
 
     public String getSpecies() { return species; }
 
+    public void setGender(String gender){
+        if (gender.equals("")){
+            return;
+        }
+
+        this.gender = gender;
+    }
+
     public String getGender() { return gender; }
+
+    public void setBirthDate(String birthDate){
+        if (birthDate.equals("")){
+            return;
+        }
+
+        this.birthDate = birthDate;
+    }
 
     public String getBirthDate() { return birthDate; }
 
-    public String getHealthStatus() { return healthStatus; }
+    public void setHealthStatus(String healthStatus){
+        if (healthStatus.equals("")){
+            return;
+        }
 
-    @Override
-    public String toString() {
-        return name;
+        this.healthStatus = healthStatus;
     }
+
+    public String getHealthStatus() { return healthStatus; }
 }

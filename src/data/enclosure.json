@@ -1,0 +1,86 @@
+[
+  {
+    "id": "ENC_01",
+    "name": "Gorillas",
+    "capacity": 7,
+    "animals": [
+      {
+        "name": "Harambe",
+        "species": "Gorilla",
+        "gender": "Female",
+        "birthDate": "1000-10-10",
+        "healthStatus": "Under Treatment"
+      },
+      {
+        "name": "Koko",
+        "species": "Gorilla",
+        "gender": "Female",
+        "birthDate": "1971-07-04",
+        "healthStatus": "Healthy"
+      }
+    ]
+  },
+  {
+    "id": "ENC_02",
+    "name": "Gorillas",
+    "capacity": 15,
+    "animals": [
+      {
+        "name": "Bokito",
+        "species": "Gorilla",
+        "gender": "Male",
+        "birthDate": "1996-03-14",
+        "healthStatus": "Healthy"
+      },
+      {
+        "name": "Jabari",
+        "species": "Gorilla",
+        "gender": "Male",
+        "birthDate": "2001-06-22",
+        "healthStatus": "Under Observation"
+      },
+      {
+        "name": "Maya",
+        "species": "Gorilla",
+        "gender": "Female",
+        "birthDate": "2012-09-18",
+        "healthStatus": "Healthy"
+      },
+      {
+        "name": "Tano",
+        "species": "Gorilla",
+        "gender": "Male",
+        "birthDate": "2015-11-30",
+        "healthStatus": "Healthy"
+      },
+      {
+        "name": "Nala",
+        "species": "Gorilla",
+        "gender": "Female",
+        "birthDate": "2018-04-12",
+        "healthStatus": "Under Treatment"
+      },
+      {
+        "name": "Zuri",
+        "species": "Gorilla",
+        "gender": "Female",
+        "birthDate": "2020-08-25",
+        "healthStatus": "Healthy"
+      },
+      {
+        "name": "Kibo",
+        "species": "Gorilla",
+        "gender": "Male",
+        "birthDate": "2017-01-09",
+        "healthStatus": "Under Observation"
+      },
+      {
+        "name": "Amara",
+        "species": "Gorilla",
+        "gender": "Female",
+        "birthDate": "2014-12-03",
+        "healthStatus": "Healthy"
+      }
+    ]
+  }
+]

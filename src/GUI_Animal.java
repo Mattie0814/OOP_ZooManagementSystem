@@ -11,8 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public final class GUI_Animal extends JPanel {
-    private final Map<String, AnimalData> animalMap = new HashMap<>();
-    private final Map<String, EnclosureData> enclosureMap = new LinkedHashMap<>();
+    private final Map<EnclosureData, ArrayList<AnimalData>> enclosureMap = new HashMap<>();
     private final ArrayList<EnclosureData> enclosures;
 
     private final JTextField searchField;
@@ -69,7 +68,7 @@ public final class GUI_Animal extends JPanel {
             }
         };
 
-        JTable animalTable = new JTable(animalTableModel);
+        animalTable = new JTable(animalTableModel);
         animalSorter = new TableRowSorter<>(animalTableModel);
         animalTable.setRowSorter(animalSorter);
 
@@ -115,27 +114,19 @@ public final class GUI_Animal extends JPanel {
         // Live Search Listener
         searchField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {
-                filter();
-            }
-
+            public void insertUpdate(DocumentEvent e) { filter(); }
             @Override
-            public void removeUpdate(DocumentEvent e) {
-                filter();
-            }
-
+            public void removeUpdate(DocumentEvent e) { filter(); }
             @Override
-            public void changedUpdate(DocumentEvent e) {
-                filter();
-            }
+            public void changedUpdate(DocumentEvent e) { filter(); }
         });
 
-        // Populate initial data from Database without mutating loaded lists
+        // Initialize Enclosure Map & Tables
         for (EnclosureData enc : enclosures) {
-            enclosureMap.put(enc.getId(), enc);
-
-            for (AnimalData animal : enc.getCurrentOccupants()) {
-                loadAnimalToTable(animal);
+            ArrayList<AnimalData> animals = new ArrayList<>(enc.getCurrentOccupants());
+            enclosureMap.put(enc, animals);
+            for (AnimalData animal : animals) {
+                loadAnimalToTable(animal, enc);
             }
         }
 
@@ -154,25 +145,26 @@ public final class GUI_Animal extends JPanel {
         enclosureSorter.setRowFilter(rowFilter);
     }
 
-    private void loadAnimalToTable(AnimalData animal) {
-        animalMap.put(animal.getName().toLowerCase(), animal);
+    private void loadAnimalToTable(AnimalData animal, EnclosureData enclosure) {
         animalTableModel.addRow(new Object[]{
                 animal.getName(),
                 animal.getSpecies(),
                 animal.getGender(),
                 animal.getBirthDate(),
-                animal.getEnclosureId(),
+                enclosure != null ? enclosure.getId() : "Unassigned",
                 animal.getHealthStatus()
         });
     }
 
-    private void addAnimal(AnimalData animal) {
-        EnclosureData enclosure = enclosureMap.get(animal.getEnclosureId());
-        if (enclosure != null) {
-            enclosure.addOccupant(animal);
-        }
+    private void addAnimalToEnclosure(EnclosureData enclosure, AnimalData animal) {
+        if (enclosure == null || animal == null) return;
 
-        loadAnimalToTable(animal);
+        ArrayList<AnimalData> occupants = enclosureMap.computeIfAbsent(enclosure, k -> new ArrayList<>());
+        if (occupants.contains(animal)) return;
+
+        occupants.add(animal);
+        enclosure.addOccupant(animal);
+        loadAnimalToTable(animal, enclosure);
         updateEnclosureTable();
         Database.saveEnclosures(enclosures);
     }
@@ -187,7 +179,19 @@ public final class GUI_Animal extends JPanel {
         JTextField speciesField = new JTextField();
         JComboBox<String> genderBox = new JComboBox<>(new String[]{"Male", "Female", "Unknown"});
         JTextField birthDateField = new JTextField();
-        JComboBox<String> enclosureBox = new JComboBox<>(enclosureMap.keySet().toArray(new String[0]));
+
+        JComboBox<EnclosureData> enclosureBox = new JComboBox<>(enclosureMap.keySet().toArray(new EnclosureData[0]));
+        enclosureBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof EnclosureData) {
+                    setText(((EnclosureData) value).getId() + " - " + ((EnclosureData) value).getName());
+                }
+                return this;
+            }
+        });
+
         JComboBox<String> healthBox = new JComboBox<>(new String[]{"Healthy", "Under Treatment", "Quarantine", "Critical"});
 
         JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
@@ -199,17 +203,14 @@ public final class GUI_Animal extends JPanel {
         formPanel.add(genderBox);
         formPanel.add(new JLabel("Birth Date (YYYY-MM-DD):"));
         formPanel.add(birthDateField);
-        formPanel.add(new JLabel("Cage/Enclosure Location:"));
+        formPanel.add(new JLabel("Enclosure Location:"));
         formPanel.add(enclosureBox);
         formPanel.add(new JLabel("Health Status:"));
         formPanel.add(healthBox);
 
         int option = JOptionPane.showConfirmDialog(
-                this,
-                formPanel,
-                "Register Animal Details",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
+                this, formPanel, "Register Animal Details",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
         );
 
         if (option != JOptionPane.OK_OPTION) return;
@@ -218,16 +219,11 @@ public final class GUI_Animal extends JPanel {
         String species = speciesField.getText().trim();
         String gender = (String) genderBox.getSelectedItem();
         String birthDate = birthDateField.getText().trim();
-        String location = (String) enclosureBox.getSelectedItem();
+        EnclosureData selectedEnclosure = (EnclosureData) enclosureBox.getSelectedItem();
         String healthStatus = (String) healthBox.getSelectedItem();
 
         if (name.isEmpty() || species.isEmpty()) {
             showError("Name and Species are required!");
-            return;
-        }
-
-        if (animalMap.containsKey(name.toLowerCase())) {
-            showError("An animal named \"" + name + "\" already exists.");
             return;
         }
 
@@ -240,25 +236,20 @@ public final class GUI_Animal extends JPanel {
             }
         }
 
-        EnclosureData enclosure = enclosureMap.get(location);
-        if (enclosure == null) {
-            showError("Selected enclosure does not exist.");
+        if (selectedEnclosure == null) {
+            showError("Please select a valid enclosure.");
             return;
         }
 
-        if (enclosure.isFull()) {
-            showError("Enclosure " + location + " is already at full capacity.");
+        if (selectedEnclosure.isFull()) {
+            showError("Enclosure " + selectedEnclosure.getId() + " is already at full capacity.");
             return;
         }
 
-        addAnimal(new AnimalData(name, species, gender, birthDate, healthStatus));
+        AnimalData newAnimal = new AnimalData(name, species, gender, birthDate, healthStatus);
+        addAnimalToEnclosure(selectedEnclosure, newAnimal);
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Animal Registered Successfully.",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        JOptionPane.showMessageDialog(this, "Animal Registered Successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void openAnimalUpdateForm() {
@@ -269,23 +260,49 @@ public final class GUI_Animal extends JPanel {
         }
 
         int modelRow = animalTable.convertRowIndexToModel(viewRow);
-        String name = (String) animalTableModel.getValueAt(modelRow, 0);
-        AnimalData animal = animalMap.get(name.toLowerCase());
-        if (animal == null) {
-            showError("Could not find the selected animal.");
+        String animalName = (String) animalTableModel.getValueAt(modelRow, 0);
+
+        AnimalData targetAnimal = null;
+        EnclosureData currentEnclosure = null;
+
+        for (Map.Entry<EnclosureData, ArrayList<AnimalData>> entry : enclosureMap.entrySet()) {
+            for (AnimalData animal : entry.getValue()) {
+                if (animal.getName().equalsIgnoreCase(animalName)) {
+                    targetAnimal = animal;
+                    currentEnclosure = entry.getKey();
+                    break;
+                }
+            }
+            if (targetAnimal != null) break;
+        }
+
+        if (targetAnimal == null || currentEnclosure == null) {
+            showError("Could not find the selected animal data.");
             return;
         }
 
-        JTextField nameField = new JTextField(animal.getName());
+        JTextField nameField = new JTextField(targetAnimal.getName());
         nameField.setEditable(false);
-        JTextField speciesField = new JTextField(animal.getSpecies());
+        JTextField speciesField = new JTextField(targetAnimal.getSpecies());
         JComboBox<String> genderBox = new JComboBox<>(new String[]{"Male", "Female", "Unknown"});
-        genderBox.setSelectedItem(animal.getGender());
-        JTextField birthDateField = new JTextField(animal.getBirthDate());
-        JComboBox<String> enclosureBox = new JComboBox<>(enclosureMap.keySet().toArray(new String[0]));
-        enclosureBox.setSelectedItem(animal.getEnclosureId());
+        genderBox.setSelectedItem(targetAnimal.getGender());
+        JTextField birthDateField = new JTextField(targetAnimal.getBirthDate());
+
+        JComboBox<EnclosureData> enclosureBox = new JComboBox<>(enclosureMap.keySet().toArray(new EnclosureData[0]));
+        enclosureBox.setSelectedItem(currentEnclosure);
+        enclosureBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof EnclosureData) {
+                    setText(((EnclosureData) value).getId() + " - " + ((EnclosureData) value).getName());
+                }
+                return this;
+            }
+        });
+
         JComboBox<String> healthBox = new JComboBox<>(new String[]{"Healthy", "Under Treatment", "Quarantine", "Critical"});
-        healthBox.setSelectedItem(animal.getHealthStatus());
+        healthBox.setSelectedItem(targetAnimal.getHealthStatus());
 
         JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
         formPanel.add(new JLabel("Name:"));
@@ -296,20 +313,21 @@ public final class GUI_Animal extends JPanel {
         formPanel.add(genderBox);
         formPanel.add(new JLabel("Birth Date (YYYY-MM-DD):"));
         formPanel.add(birthDateField);
-        formPanel.add(new JLabel("Cage/Enclosure Location:"));
+        formPanel.add(new JLabel("Enclosure Location:"));
         formPanel.add(enclosureBox);
         formPanel.add(new JLabel("Health Status:"));
         formPanel.add(healthBox);
 
         int option = JOptionPane.showConfirmDialog(
                 this, formPanel, "Update Animal Details",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
+        );
         if (option != JOptionPane.OK_OPTION) return;
 
         String species = speciesField.getText().trim();
         String gender = (String) genderBox.getSelectedItem();
         String birthDate = birthDateField.getText().trim();
-        String newEnclosureId = (String) enclosureBox.getSelectedItem();
+        EnclosureData newEnclosure = (EnclosureData) enclosureBox.getSelectedItem();
         String healthStatus = (String) healthBox.getSelectedItem();
 
         if (species.isEmpty()) {
@@ -326,82 +344,40 @@ public final class GUI_Animal extends JPanel {
             }
         }
 
-        // Handle enclosure change
-        String oldEnclosureId = animal.getEnclosureId();
-        if (!Objects.equals(oldEnclosureId, newEnclosureId)) {
-            EnclosureData newEnc = enclosureMap.get(newEnclosureId);
-            if (newEnc == null) {
-                showError("Selected enclosure does not exist.");
-                return;
-            }
-            if (newEnc.isFull()) {
-                showError("Enclosure " + newEnclosureId + " is already at full capacity.");
-                return;
-            }
-            EnclosureData oldEnc = enclosureMap.get(oldEnclosureId);
-            if (oldEnc != null) oldEnc.removeOccupant(animal);
-            newEnc.addOccupant(animal);
-            animal.setEnclosureId(newEnclosureId);
+        if (newEnclosure == null) {
+            showError("Selected enclosure does not exist.");
+            return;
         }
 
-        animal.setSpecies(species);
-        animal.setGender(gender);
-        animal.setBirthDate(birthDate);
-        animal.setHealthStatus(healthStatus);
+        // Handle enclosure migration if changed
+        if (!currentEnclosure.equals(newEnclosure)) {
+            if (newEnclosure.isFull()) {
+                showError("Enclosure " + newEnclosure.getId() + " is already at full capacity.");
+                return;
+            }
+            currentEnclosure.removeOccupant(targetAnimal);
+            enclosureMap.get(currentEnclosure).remove(targetAnimal);
+
+            newEnclosure.addOccupant(targetAnimal);
+            enclosureMap.computeIfAbsent(newEnclosure, k -> new ArrayList<>()).add(targetAnimal);
+        }
+
+        targetAnimal.setSpecies(species);
+        targetAnimal.setGender(gender);
+        targetAnimal.setBirthDate(birthDate);
+        targetAnimal.setHealthStatus(healthStatus);
 
         // Refresh table row
-        animalTableModel.setValueAt(animal.getSpecies(), modelRow, 1);
-        animalTableModel.setValueAt(animal.getGender(), modelRow, 2);
-        animalTableModel.setValueAt(animal.getBirthDate(), modelRow, 3);
-        animalTableModel.setValueAt(animal.getEnclosureId(), modelRow, 4);
-        animalTableModel.setValueAt(animal.getHealthStatus(), modelRow, 5);
+        animalTableModel.setValueAt(targetAnimal.getSpecies(), modelRow, 1);
+        animalTableModel.setValueAt(targetAnimal.getGender(), modelRow, 2);
+        animalTableModel.setValueAt(targetAnimal.getBirthDate(), modelRow, 3);
+        animalTableModel.setValueAt(newEnclosure.getId(), modelRow, 4);
+        animalTableModel.setValueAt(targetAnimal.getHealthStatus(), modelRow, 5);
 
         updateEnclosureTable();
         Database.saveEnclosures(enclosures);
 
-        JOptionPane.showMessageDialog(this, "Animal Updated Successfully.",
-                "Success", JOptionPane.INFORMATION_MESSAGE);
-
-
-        // Handle enclosure change
-        String oldEnclosureId = animal.getEnclosureId();
-        if (!Objects.equals(oldEnclosureId, newEnclosureId)) {
-            EnclosureData newEnc = enclosureMap.get(newEnclosureId);
-            if (newEnc == null) {
-                showError("Selected enclosure does not exist.");
-                return;
-            }
-            if (newEnc.isFull()) {
-                showError("Enclosure " + newEnclosureId + " is already at full capacity.");
-                return;
-            }
-            EnclosureData oldEnc = enclosureMap.get(oldEnclosureId);
-            if (oldEnc != null) oldEnc.removeOccupant(animal);
-            newEnc.addOccupant(animal);
-            animal.setEnclosureId(newEnclosureId);
-        }
-
-        animal.setSpecies(species);
-        animal.setGender(gender);
-        animal.setBirthDate(birthDate);
-        animal.setHealthStatus(healthStatus);
-
-        // Refresh the table row
-        animalTableModel.setValueAt(animal.getSpecies(), modelRow, 1);
-        animalTableModel.setValueAt(animal.getGender(), modelRow, 2);
-        animalTableModel.setValueAt(animal.getBirthDate(), modelRow, 3);
-        animalTableModel.setValueAt(animal.getEnclosureId(), modelRow, 4);
-        animalTableModel.setValueAt(animal.getHealthStatus(), modelRow, 5);
-
-        updateEnclosureTable();
-        Database.saveEnclosures(enclosures);
-
-        JOptionPane.showMessageDialog(
-                this,
-                "Animal Information Updated Successfully.",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        JOptionPane.showMessageDialog(this, "Animal Information Updated Successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void openAddEnclosureForm() {
@@ -412,17 +388,14 @@ public final class GUI_Animal extends JPanel {
         JPanel formPanel = new JPanel(new GridLayout(3, 2, 5, 5));
         formPanel.add(new JLabel("Enclosure ID:"));
         formPanel.add(idField);
-        formPanel.add(new JLabel("Type:"));
+        formPanel.add(new JLabel("Type / Name:"));
         formPanel.add(typeField);
         formPanel.add(new JLabel("Capacity:"));
         formPanel.add(capacityField);
 
         int option = JOptionPane.showConfirmDialog(
-                this,
-                formPanel,
-                "Add New Enclosure",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE
+                this, formPanel, "Add New Enclosure",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
         );
 
         if (option != JOptionPane.OK_OPTION) return;
@@ -435,36 +408,32 @@ public final class GUI_Animal extends JPanel {
             return;
         }
 
-        if (enclosureMap.containsKey(id)) {
+        boolean exists = enclosureMap.keySet().stream().anyMatch(e -> e.getId().equalsIgnoreCase(id));
+        if (exists) {
             showError("An enclosure with ID " + id + " already exists.");
             return;
         }
 
-        int zone;
+        int capacity;
         try {
-            zone = Integer.parseInt(capacityField.getText().trim());
+            capacity = Integer.parseInt(capacityField.getText().trim());
         } catch (NumberFormatException ex) {
-            zone = 0;
+            capacity = 0;
         }
 
-        if (zone <= 0) {
+        if (capacity <= 0) {
             showError("Capacity must be a positive whole number.");
             return;
         }
 
-        EnclosureData newEnclosure = new EnclosureData(id, name, zone);
-        enclosureMap.put(id, newEnclosure);
+        EnclosureData newEnclosure = new EnclosureData(id, type, capacity);
+        enclosureMap.put(newEnclosure, new ArrayList<>());
         enclosures.add(newEnclosure);
 
         Database.saveEnclosures(enclosures);
         updateEnclosureTable();
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Enclosure Added Successfully.",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        JOptionPane.showMessageDialog(this, "Enclosure Added Successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void showError(String message) {
@@ -474,8 +443,11 @@ public final class GUI_Animal extends JPanel {
     private void updateEnclosureTable() {
         enclosureTableModel.setRowCount(0);
 
-        for (EnclosureData enc : enclosureMap.values()) {
-            String occupantNames = enc.getCurrentOccupants().stream()
+        for (Map.Entry<EnclosureData, ArrayList<AnimalData>> entry : enclosureMap.entrySet()) {
+            EnclosureData enc = entry.getKey();
+            ArrayList<AnimalData> occupants = entry.getValue();
+
+            String occupantNames = occupants.stream()
                     .map(AnimalData::getName)
                     .collect(Collectors.joining(", "));
 
@@ -483,7 +455,7 @@ public final class GUI_Animal extends JPanel {
                     enc.getId(),
                     enc.getName(),
                     enc.getCapacity(),
-                    enc.getCurrentOccupantCount(),
+                    occupants.size(),
                     occupantNames.isEmpty() ? "Empty" : occupantNames
             });
         }
