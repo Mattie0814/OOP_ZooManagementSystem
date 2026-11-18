@@ -1,6 +1,7 @@
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
@@ -179,6 +180,20 @@ public final class GUI_Animal extends JPanel {
         JTextField speciesField = new JTextField();
         JComboBox<String> genderBox = new JComboBox<>(new String[]{"Male", "Female", "Unknown"});
         JTextField birthDateField = new JTextField();
+        JTextField imagePathField = new JTextField();
+        imagePathField.setEditable(false);
+        JButton browseImageButton = new JButton("Browse...");
+        browseImageButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif"));
+            int result = fileChooser.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                imagePathField.setText(fileChooser.getSelectedFile().getAbsolutePath());
+            }
+        });
+        JPanel imagePanel = new JPanel(new BorderLayout(5, 0));
+        imagePanel.add(imagePathField, BorderLayout.CENTER);
+        imagePanel.add(browseImageButton, BorderLayout.EAST);
 
         JComboBox<EnclosureData> enclosureBox = new JComboBox<>(enclosureMap.keySet().toArray(new EnclosureData[0]));
         enclosureBox.setRenderer(new DefaultListCellRenderer() {
@@ -194,7 +209,7 @@ public final class GUI_Animal extends JPanel {
 
         JComboBox<String> healthBox = new JComboBox<>(new String[]{"Healthy", "Under Treatment", "Quarantine", "Critical"});
 
-        JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
+        JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
         formPanel.add(new JLabel("Name:"));
         formPanel.add(nameField);
         formPanel.add(new JLabel("Species:"));
@@ -203,6 +218,8 @@ public final class GUI_Animal extends JPanel {
         formPanel.add(genderBox);
         formPanel.add(new JLabel("Birth Date (YYYY-MM-DD):"));
         formPanel.add(birthDateField);
+        formPanel.add(new JLabel("Animal Photo:"));
+        formPanel.add(imagePanel);
         formPanel.add(new JLabel("Enclosure Location:"));
         formPanel.add(enclosureBox);
         formPanel.add(new JLabel("Health Status:"));
@@ -247,6 +264,7 @@ public final class GUI_Animal extends JPanel {
         }
 
         AnimalData newAnimal = new AnimalData(name, species, gender, birthDate, healthStatus);
+        newAnimal.setImagePath(imagePathField.getText().trim());
         addAnimalToEnclosure(selectedEnclosure, newAnimal);
 
         JOptionPane.showMessageDialog(this, "Animal Registered Successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -287,6 +305,20 @@ public final class GUI_Animal extends JPanel {
         JComboBox<String> genderBox = new JComboBox<>(new String[]{"Male", "Female", "Unknown"});
         genderBox.setSelectedItem(targetAnimal.getGender());
         JTextField birthDateField = new JTextField(targetAnimal.getBirthDate());
+        JTextField imagePathField = new JTextField(targetAnimal.getImagePath() != null ? targetAnimal.getImagePath() : "");
+        imagePathField.setEditable(false);
+        JButton browseImageButton = new JButton("Browse...");
+        browseImageButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif"));
+            int result = fileChooser.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                imagePathField.setText(fileChooser.getSelectedFile().getAbsolutePath());
+            }
+        });
+        JPanel imagePanel = new JPanel(new BorderLayout(5, 0));
+        imagePanel.add(imagePathField, BorderLayout.CENTER);
+        imagePanel.add(browseImageButton, BorderLayout.EAST);
 
         JComboBox<EnclosureData> enclosureBox = new JComboBox<>(enclosureMap.keySet().toArray(new EnclosureData[0]));
         enclosureBox.setSelectedItem(currentEnclosure);
@@ -304,7 +336,7 @@ public final class GUI_Animal extends JPanel {
         JComboBox<String> healthBox = new JComboBox<>(new String[]{"Healthy", "Under Treatment", "Quarantine", "Critical"});
         healthBox.setSelectedItem(targetAnimal.getHealthStatus());
 
-        JPanel formPanel = new JPanel(new GridLayout(6, 2, 5, 5));
+        JPanel formPanel = new JPanel(new GridLayout(7, 2, 5, 5));
         formPanel.add(new JLabel("Name:"));
         formPanel.add(nameField);
         formPanel.add(new JLabel("Species:"));
@@ -313,6 +345,8 @@ public final class GUI_Animal extends JPanel {
         formPanel.add(genderBox);
         formPanel.add(new JLabel("Birth Date (YYYY-MM-DD):"));
         formPanel.add(birthDateField);
+        formPanel.add(new JLabel("Animal Photo:"));
+        formPanel.add(imagePanel);
         formPanel.add(new JLabel("Enclosure Location:"));
         formPanel.add(enclosureBox);
         formPanel.add(new JLabel("Health Status:"));
@@ -365,6 +399,7 @@ public final class GUI_Animal extends JPanel {
         targetAnimal.setSpecies(species);
         targetAnimal.setGender(gender);
         targetAnimal.setBirthDate(birthDate);
+        targetAnimal.setImagePath(imagePathField.getText().trim());
         targetAnimal.setHealthStatus(healthStatus);
 
         // Refresh table row
