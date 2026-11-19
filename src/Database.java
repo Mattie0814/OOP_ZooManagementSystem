@@ -68,8 +68,6 @@ public class Database {
         try {
             File file = new File(path);
 
-            file.getParentFile().mkdirs();
-
             try (FileWriter writer = new FileWriter(file)) {
                 gson.toJson(data, writer);
             }

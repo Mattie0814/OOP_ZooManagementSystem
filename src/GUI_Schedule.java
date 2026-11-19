@@ -135,6 +135,21 @@ public final class GUI_Schedule extends JPanel {
         optionsPanel.add(Box.createVerticalStrut(15));
         optionsPanel.add(returnButton);
 
+        URL imageUrl = getClass().getResource("graphics/scheduleMenuBorder.png");
+        Image backgroundImage = imageUrl != null ? new ImageIcon(imageUrl).getImage() : null;
+
+        JPanel headerPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
+
+        headerPanel.setOpaque(backgroundImage == null);
+
         return optionsPanel;
     }
 
@@ -331,6 +346,21 @@ class CalendarPanel extends JPanel {
         centerPanel.add(calendarGrid, BorderLayout.CENTER);
 
         add(centerPanel, BorderLayout.CENTER);
+
+        URL imageUrl = getClass().getResource("graphics/scheduleMenuBorder.png");
+        Image backgroundImage = imageUrl != null ? new ImageIcon(imageUrl).getImage() : null;
+
+        JPanel headerPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
+
+        headerPanel.setOpaque(backgroundImage == null);
     }
 
     private void createHeader() {

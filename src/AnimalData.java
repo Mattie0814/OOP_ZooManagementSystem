@@ -15,7 +15,7 @@ public class AnimalData {
     }
 
     public void setName(String name){
-        if (name.equals("")){
+        if (name.isEmpty()){
             return;
         }
 
@@ -25,7 +25,7 @@ public class AnimalData {
     public String getName() { return name; }
 
     public void setSpecies(String species){
-        if (species.equals("")){
+        if (species.isEmpty()){
             return;
         }
 
@@ -35,7 +35,7 @@ public class AnimalData {
     public String getSpecies() { return species; }
 
     public void setGender(String gender){
-        if (gender.equals("")){
+        if (gender.isEmpty()){
             return;
         }
 
@@ -45,7 +45,7 @@ public class AnimalData {
     public String getGender() { return gender; }
 
     public void setBirthDate(String birthDate){
-        if (birthDate.equals("")){
+        if (birthDate.isEmpty()){
             return;
         }
 
@@ -55,7 +55,7 @@ public class AnimalData {
     public String getBirthDate() { return birthDate; }
 
     public void setHealthStatus(String healthStatus){
-        if (healthStatus.equals("")){
+        if (healthStatus.isEmpty()){
             return;
         }
 
