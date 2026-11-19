@@ -1,10 +1,12 @@
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -23,6 +25,7 @@ public final class GUI_Animal extends JPanel {
 
     private final DefaultTableModel enclosureTableModel;
     private final TableRowSorter<DefaultTableModel> enclosureSorter;
+    private final JLabel photoLabel = new JLabel("No photo selected", JLabel.CENTER);
 
     public GUI_Animal(CardLayout cardLayout, JPanel mainPanel) {
         ArrayList<EnclosureData> loaded = Database.loadEnclosures();
@@ -41,18 +44,21 @@ public final class GUI_Animal extends JPanel {
         JButton clearSearchButton = new JButton("Clear");
         JButton registerAnimalButton = new JButton("Register Animal");
         JButton updateAnimalButton = new JButton("Update Animal");
+        JButton removeAnimalButton = new JButton("Remove Animal");
         JButton addEnclosureButton = new JButton("Add Enclosure");
         JButton returnButton = new JButton("Return to Main");
 
         clearSearchButton.addActionListener(e -> searchField.setText(""));
         registerAnimalButton.addActionListener(e -> openAnimalRegistrationForm());
         updateAnimalButton.addActionListener(e -> openAnimalUpdateForm());
+        removeAnimalButton.addActionListener(e -> removeSelectedAnimal());
         addEnclosureButton.addActionListener(e -> openAddEnclosureForm());
         returnButton.addActionListener(e -> cardLayout.show(mainPanel, "MAIN"));
 
         topPanel.add(clearSearchButton);
         topPanel.add(registerAnimalButton);
         topPanel.add(updateAnimalButton);
+        topPanel.add(removeAnimalButton);
         topPanel.add(addEnclosureButton);
         topPanel.add(returnButton);
 
@@ -72,6 +78,11 @@ public final class GUI_Animal extends JPanel {
         animalTable = new JTable(animalTableModel);
         animalSorter = new TableRowSorter<>(animalTableModel);
         animalTable.setRowSorter(animalSorter);
+        animalTable.getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
+            if (!e.getValueIsAdjusting()) {
+                displaySelectedAnimalPhoto();
+            }
+        });
 
         // Enclosures Table
         String[] enclosureCols = {
@@ -133,6 +144,12 @@ public final class GUI_Animal extends JPanel {
 
         add(topPanel, BorderLayout.NORTH);
         add(tabbedPane, BorderLayout.CENTER);
+        JPanel photoPanel = new JPanel(new BorderLayout());
+        photoPanel.setPreferredSize(new Dimension(220, 0));
+        photoPanel.setBorder(BorderFactory.createTitledBorder("Animal Photo"));
+        photoLabel.setForeground(Color.GRAY);
+        photoPanel.add(photoLabel, BorderLayout.CENTER);
+        add(photoPanel, BorderLayout.EAST);
 
         updateEnclosureTable();
     }
@@ -168,6 +185,100 @@ public final class GUI_Animal extends JPanel {
         loadAnimalToTable(animal, enclosure);
         updateEnclosureTable();
         Database.saveEnclosures(enclosures);
+    }
+
+    private AnimalData findAnimalByName(String animalName) {
+        for (ArrayList<AnimalData> list : enclosureMap.values()) {
+            for (AnimalData animal : list) {
+                if (animal.getName().equalsIgnoreCase(animalName)) {
+                    return animal;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void displaySelectedAnimalPhoto() {
+        int viewRow = animalTable.getSelectedRow();
+        if (viewRow < 0) {
+            photoLabel.setIcon(null);
+            photoLabel.setText("No photo selected");
+            return;
+        }
+
+        int modelRow = animalTable.convertRowIndexToModel(viewRow);
+        String animalName = (String) animalTableModel.getValueAt(modelRow, 0);
+        AnimalData animal = findAnimalByName(animalName);
+
+        String path = (animal != null) ? animal.getImagePath() : null;
+        if (path == null || path.trim().isEmpty() || !new File(path).exists()) {
+            photoLabel.setIcon(null);
+            photoLabel.setText("No photo available");
+            return;
+        }
+
+        ImageIcon originalIcon = new ImageIcon(path);
+        if (originalIcon.getIconWidth() == -1) {
+            photoLabel.setIcon(null);
+            photoLabel.setText("Failed to load photo");
+            return;
+        }
+
+        int targetW = photoLabel.getWidth() > 0 ? photoLabel.getWidth() - 20 : 180;
+        int targetH = photoLabel.getHeight() > 0 ? photoLabel.getHeight() - 20 : 180;
+        Image scaled = originalIcon.getImage().getScaledInstance(
+                Math.max(50, targetW), Math.max(50, targetH), Image.SCALE_SMOOTH
+        );
+        photoLabel.setText("");
+        photoLabel.setIcon(new ImageIcon(scaled));
+    }
+
+    private void removeSelectedAnimal() {
+        int viewRow = animalTable.getSelectedRow();
+        if (viewRow < 0) {
+            showError("Please select an animal in the table to remove.");
+            return;
+        }
+
+        int modelRow = animalTable.convertRowIndexToModel(viewRow);
+        String animalName = (String) animalTableModel.getValueAt(modelRow, 0);
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to remove \"" + animalName + "\"?",
+                "Confirm Remove Animal",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        AnimalData targetAnimal = null;
+        EnclosureData ownerEnclosure = null;
+
+        for (Map.Entry<EnclosureData, ArrayList<AnimalData>> entry : enclosureMap.entrySet()) {
+            for (AnimalData animal : entry.getValue()) {
+                if (animal.getName().equalsIgnoreCase(animalName)) {
+                    targetAnimal = animal;
+                    ownerEnclosure = entry.getKey();
+                    break;
+                }
+            }
+            if (targetAnimal != null) break;
+        }
+
+        if (targetAnimal != null && ownerEnclosure != null) {
+            ownerEnclosure.removeOccupant(targetAnimal);
+            enclosureMap.get(ownerEnclosure).remove(targetAnimal);
+        }
+
+        animalTableModel.removeRow(modelRow);
+        updateEnclosureTable();
+        Database.saveEnclosures(enclosures);
+
+        photoLabel.setIcon(null);
+        photoLabel.setText("No photo selected");
+
+        JOptionPane.showMessageDialog(this, "Animal Removed Successfully.", "Removed", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void openAnimalRegistrationForm() {
