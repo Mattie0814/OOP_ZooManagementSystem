@@ -1,13 +1,13 @@
 public class FoodItem extends ItemData {
-    private final String expiry;
-    private final String animals;
+    private String animals;
 
-    public FoodItem(String name, int stock, String expiry, String animals) {
-        super(name, TYPE.FOOD, stock);
-        this.expiry = expiry;
+    public FoodItem(String name, int stock, String dateProcured, String animals, String ID, int autoUpdate) {
+        super(name, TYPE.FOOD, stock, dateProcured, ID, autoUpdate);
         this.animals = animals;
     }
 
-    public String getExpiry() { return expiry; }
+    public static String foodID() {return generateID(TYPE.FOOD);}
     public String getAnimals() { return animals; }
+    
+    public void setAnimals(String animals) {this.animals = animals;}
 }

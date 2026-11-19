@@ -9,18 +9,15 @@ public class ItemDataAdapter implements JsonSerializer<ItemData>, JsonDeserializ
         json.addProperty("name", item.getName());
         json.addProperty("type", item.getType().name());
         json.addProperty("stock", item.getStock());
-
+        json.addProperty("procured", item.getDateProcured());
         if (item instanceof FoodItem) {
             FoodItem food = (FoodItem) item;
 
-            json.addProperty("expiry", food.getExpiry());
             json.addProperty("animals", food.getAnimals());
 
-        } else if (item instanceof MedicineItem) {
-            MedicineItem medicine = (MedicineItem) item;
-
-            json.addProperty("expiry", medicine.getExpiry());
         }
+        json.addProperty("id", item.getID());
+        json.addProperty("update", item.getAutoUpdate());
 
         return json;
     }
@@ -32,16 +29,18 @@ public class ItemDataAdapter implements JsonSerializer<ItemData>, JsonDeserializ
         String name = json.get("name").getAsString();
         ItemData.TYPE itemType = ItemData.TYPE.valueOf(json.get("type").getAsString());
         int stock = json.get("stock").getAsInt();
+        String dateProcured = json.get("procured").getAsString();
+        int autoUpdate = json.get("update").getAsInt();
 
         switch (itemType) {
             case FOOD:
-                return new FoodItem(name, stock, json.get("expiry").getAsString(), json.get("animals").getAsString());
+                return new FoodItem(name, stock, dateProcured, json.get("animals").getAsString(), json.get("id").getAsString(), autoUpdate);
 
             case MEDICINE:
-                return new MedicineItem(name, stock, json.get("expiry").getAsString());
+                return new MedicineItem(name, stock, dateProcured, json.get("id").getAsString(), autoUpdate);
 
             case MISC:
-                return new MiscellaneousItem(name, stock);
+                return new MiscellaneousItem(name, stock, dateProcured, json.get("id").getAsString(),autoUpdate);
 
             default:
                 throw new JsonParseException("Unknown item type: " + itemType);

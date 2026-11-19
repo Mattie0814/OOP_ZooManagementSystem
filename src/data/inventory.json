@@ -1,50 +1,63 @@
 [
   {
-    "type": "FOOD",
     "name": "Lion Meat",
+    "type": "FOOD",
     "stock": 100,
-    "expiry": "2027-03-15",
-    "animals": "Lions"
+    "procured": "2027-03-15",
+    "animals": "Lions",
+    "id": "FO000001",
+    "update": 0
   },
   {
-    "type": "FOOD",
     "name": "Elephant Hay",
-    "stock": 250,
-    "expiry": "2027-06-30",
-    "animals": "Elephants"
-  },
-  {
     "type": "FOOD",
+    "stock": 0,
+    "procured": "2027-06-30",
+    "animals": "Elephants",
+    "id": "FO000002",
+    "update": 10
+  },
+  {
     "name": "Monkey Bananas",
+    "type": "FOOD",
     "stock": 80,
-    "expiry": "2026-12-20",
-    "animals": "Monkeys"
+    "procured": "2026-12-20",
+    "animals": "Monkeys",
+    "id": "FO000003",
+    "update": 0
   },
   {
-    "type": "MEDICINE",
     "name": "Vitamin Supplement",
-    "stock": 30,
-    "expiry": "2027-01-15"
-  },
-  {
     "type": "MEDICINE",
+    "stock": 30,
+    "procured": "2027-01-15",
+    "id": "ME000001",
+    "update": 0
+  },
+  {
     "name": "Antibiotic Injection",
+    "type": "MEDICINE",
     "stock": 15,
-    "expiry": "2027-08-10"
+    "procured": "2027-08-10",
+    "id": "ME000002",
+    "update": 0
   },
   {
-    "type": "MISC",
-    "name": "Cleaning Brush",
-    "stock": 20
+    "name": "Banana",
+    "type": "FOOD",
+    "stock": 100,
+    "procured": "2027-03-21",
+    "animals": "you",
+    "id": "FO000004",
+    "update": 0
   },
   {
-    "type": "MISC",
-    "name": "Protective Gloves",
-    "stock": 100
-  },
-  {
-    "type": "MISC",
-    "name": "Water Hose",
-    "stock": 10
+    "name": "qwe",
+    "type": "FOOD",
+    "stock": 10,
+    "procured": "2026-02-20",
+    "animals": "them",
+    "id": "FO000006",
+    "update": 0
   }
 ]

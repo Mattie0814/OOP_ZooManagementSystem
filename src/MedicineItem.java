@@ -1,10 +1,7 @@
 public class MedicineItem extends ItemData {
-    private final String expiry;
-
-    public MedicineItem(String name, int stock, String expiry) {
-        super(name, TYPE.MEDICINE, stock);
-        this.expiry = expiry;
+    public MedicineItem(String name, int stock, String dateProcured, String ID, int autoUpdate) {
+        super(name, TYPE.MEDICINE, stock, dateProcured, ID, autoUpdate);
     }
 
-    public String getExpiry() { return expiry; }
+    public static String medicineID() {return generateID(TYPE.MEDICINE);}
 }
