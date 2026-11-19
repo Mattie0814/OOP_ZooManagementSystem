@@ -1,41 +1,39 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.font.GlyphVector;
 import java.net.URL;
 import java.util.ArrayList;
 
-public final class GUI_Login extends JFrame implements ActionListener {
+public final class GUI_Login extends JFrame{
     private final JTextField usernameField;
     private final JPasswordField passwordField;
-    private final JButton loginButton;
 
     private final ArrayList<UserData> users = Database.loadUsers();
 
     public GUI_Login() {
-        setTitle("Zoo Management System");
+        setTitle("ZooTrak - Zoo Management System");
         setSize(1280, 720);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        URL imageUrl = getClass().getResource("graphics/tempLoginImg.jpg");
+        URL imageUrl = getClass().getResource("graphics/loginMenuBackground.jpg");
         Image backgroundImage = imageUrl != null ? new ImageIcon(imageUrl).getImage() : null;
 
         JPanel panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                if (backgroundImage != null) {
-                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-                }
+            super.paintComponent(g);
+            if (backgroundImage != null) {
+                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+            }
             }
         };
 
-        panel.setLayout(new GridLayout(5, 1, 10, 10));
+        panel.setLayout(new GridLayout(5, 1, 10, 20));
         panel.setBorder(BorderFactory.createEmptyBorder(150, 350, 150, 350));
 
-        JLabel title = new OutlinedLabel("ZOOTRAK");
+        ActionListener loginAction = e -> login();
 
         usernameField = new JTextField();
         usernameField.setFont(new Font("Arial", Font.PLAIN, 20));
@@ -44,27 +42,14 @@ public final class GUI_Login extends JFrame implements ActionListener {
         passwordField = new JPasswordField();
         passwordField.setFont(new Font("Arial", Font.PLAIN, 20));
         passwordField.setBorder(BorderFactory.createTitledBorder("Password"));
+        passwordField.addActionListener(loginAction);
 
-        loginButton = new JButton("LOGIN");
-        loginButton.setFont(new Font("Arial", Font.BOLD, 20));
-        loginButton.addActionListener(this);
-
-        panel.add(title);
         panel.add(usernameField);
         panel.add(passwordField);
-        panel.add(loginButton);
-
         add(panel, BorderLayout.CENTER);
 
         setLocationRelativeTo(null);
         setVisible(true);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == loginButton) {
-            login();
-        }
     }
 
     private void login() {
@@ -80,7 +65,10 @@ public final class GUI_Login extends JFrame implements ActionListener {
         for (UserData user : users) {
             if (username.equals(user.getUsername()) && password.equals(user.getPassword())) {
                 System.out.println(user.getType() + " logged in.");
-                new GUI_MainMenu(user);
+
+                Database.setActiveUser(user);
+
+                new GUI_MainMenu();
                 dispose();
                 return;
             }
@@ -88,39 +76,5 @@ public final class GUI_Login extends JFrame implements ActionListener {
 
         JOptionPane.showMessageDialog(this, "Invalid username or password.",
                 "Login Error", JOptionPane.ERROR_MESSAGE);
-    }
-}
-
-
-class OutlinedLabel extends JLabel {
-    public OutlinedLabel(String text) {
-        super(text, JLabel.CENTER);
-        setFont(new Font("Arial", Font.BOLD, 30));
-        setForeground(Color.WHITE);
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2d = (Graphics2D) g.create();
-
-        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-        FontMetrics fm = g2d.getFontMetrics(getFont());
-
-        int x = (getWidth() - fm.stringWidth(getText())) / 2;
-        int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-
-        GlyphVector gv = getFont().createGlyphVector(g2d.getFontRenderContext(), getText());
-
-        Shape textShape = gv.getOutline(x, y);
-
-        g2d.setColor(Color.BLACK);
-        g2d.setStroke(new BasicStroke(5));
-        g2d.draw(textShape);
-
-        g2d.setColor(Color.WHITE);
-        g2d.fill(textShape);
-
-        g2d.dispose();
     }
 }

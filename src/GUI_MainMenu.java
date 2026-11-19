@@ -2,41 +2,48 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URL;
 
 public final class GUI_MainMenu extends JFrame implements ActionListener {
-    private final UserData user;
-
     private final JButton animalButton = createMenuButton("ANIMAL DATABASE");
     private final JButton inventoryButton = createMenuButton("INVENTORY");
     private final JButton scheduleButton = createMenuButton("SCHEDULE / TASKS");
     private final JButton staffButton = createMenuButton("STAFF REGISTRY");
     private final JButton logoutButton = createMenuButton("LOGOUT");
+    private final JButton closeButton = createMenuButton("CLOSE APPLICATION");
 
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel mainPanel = new JPanel(cardLayout);
 
-    public GUI_MainMenu(UserData user) {
-        this.user = user;
+    private UserData user;
+
+    private Image backgroundImage;
+
+    public GUI_MainMenu() {
+        this.user = Database.getActiveUser();
 
         setTitle("ZooTrak - Main Menu");
         setSize(1280, 720);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        URL imageUrl = getClass().getResource("graphics/mainMenuBackground.jpg");
+        if (imageUrl != null) {
+            backgroundImage = new ImageIcon(imageUrl).getImage();
+        }
 
         mainPanel.add(createMenuPanel(), "MAIN");
         mainPanel.add(new GUI_Animal(cardLayout, mainPanel), "ANIMALS");
         mainPanel.add(new GUI_Inventory(cardLayout, mainPanel), "INVENTORY");
-        mainPanel.add(new GUI_Schedule(cardLayout, mainPanel, user), "SCHEDULE");
+        mainPanel.add(new GUI_Schedule(cardLayout, mainPanel), "SCHEDULE");
 
         if (user.getType() == UserData.ROLE.ADMIN) {
             mainPanel.add(new GUI_StaffRegistry(cardLayout, mainPanel, user), "STAFF");
         }
 
-
         add(mainPanel);
-
         cardLayout.show(mainPanel, "MAIN");
 
-        setLocationRelativeTo(null);
         setVisible(true);
     }
 
@@ -48,17 +55,28 @@ public final class GUI_MainMenu extends JFrame implements ActionListener {
     }
 
     private JPanel createMenuPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
 
         JLabel title = new JLabel("ZOOTRAK", JLabel.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 32));
         title.setBorder(BorderFactory.createEmptyBorder(30, 0, 20, 0));
+        title.setForeground(Color.WHITE);
 
         JLabel welcome = new JLabel("Welcome, " + user.getUsername() + " (" + user.getType() + ")", JLabel.CENTER);
         welcome.setFont(new Font("Arial", Font.PLAIN, 22));
+        welcome.setForeground(Color.WHITE);
 
         JPanel buttonPanel = new JPanel(new GridLayout(0, 1, 20, 20));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(40, 400, 80, 400));
+        buttonPanel.setOpaque(false);
 
         buttonPanel.add(animalButton);
         buttonPanel.add(inventoryButton);
@@ -69,9 +87,10 @@ public final class GUI_MainMenu extends JFrame implements ActionListener {
         }
 
         buttonPanel.add(logoutButton);
+        buttonPanel.add(closeButton);
 
         JPanel centerPanel = new JPanel(new BorderLayout());
-
+        centerPanel.setOpaque(false);
         centerPanel.add(welcome, BorderLayout.NORTH);
         centerPanel.add(buttonPanel, BorderLayout.CENTER);
 
@@ -85,20 +104,18 @@ public final class GUI_MainMenu extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == animalButton) {
             cardLayout.show(mainPanel, "ANIMALS");
-        }
-        else if (e.getSource() == inventoryButton) {
+        } else if (e.getSource() == inventoryButton) {
             cardLayout.show(mainPanel, "INVENTORY");
-        }
-        else if (e.getSource() == scheduleButton) {
+        } else if (e.getSource() == scheduleButton) {
             cardLayout.show(mainPanel, "SCHEDULE");
-        }
-        else if (e.getSource() == staffButton) {
+        } else if (e.getSource() == staffButton) {
             if (user.getType() == UserData.ROLE.ADMIN) {
                 cardLayout.show(mainPanel, "STAFF");
             }
-        }
-        else if (e.getSource() == logoutButton) {
+        } else if (e.getSource() == logoutButton) {
             logout();
+        } else if (e.getSource() == closeButton) {
+            System.exit(0);
         }
     }
 

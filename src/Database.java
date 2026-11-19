@@ -15,6 +15,8 @@ public class Database {
     private static final String INVENTORY_PATH = "src/data/inventory.json";
     private static final String ENCLOSURE_PATH = "src/data/enclosure.json";
 
+    private static UserData activeUser;
+
     private static final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeHierarchyAdapter(TaskData.class, new TaskDataAdapter())
@@ -33,6 +35,16 @@ public class Database {
     public static ArrayList<UserData> loadUsers() {
         return loadData(USER_PATH, USER_LIST_TYPE);
     }
+
+    public static void setActiveUser(UserData user) {
+        if (user == null) {
+            return;
+        }
+
+        activeUser = user;
+    }
+
+    public static UserData getActiveUser() { return activeUser; }
 
     // INVENTORY DATA
     public static void saveInventory(ArrayList<ItemData> items) {

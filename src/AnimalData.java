@@ -4,6 +4,7 @@ public class AnimalData {
     private String gender;
     private String birthDate;
     private String healthStatus;
+    private String imagePath;
 
     public AnimalData(String name, String species, String gender, String birthDate, String healthStatus) {
         this.name = name;
@@ -62,4 +63,14 @@ public class AnimalData {
     }
 
     public String getHealthStatus() { return healthStatus; }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+
 }

@@ -1,15 +1,15 @@
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import java.awt.*;
+import java.net.URL;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import javax.swing.text.AbstractDocument;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DocumentFilter;
-
 
 public final class GUI_Schedule extends JPanel {
     private final JLabel timeLabel;
@@ -23,15 +23,32 @@ public final class GUI_Schedule extends JPanel {
 
     private final UserData user;
 
+    public GUI_Schedule(CardLayout cardLayout, JPanel mainPanel) {
+        this(cardLayout, mainPanel, Database.getActiveUser());
+    }
+
     public GUI_Schedule(CardLayout cardLayout, JPanel mainPanel, UserData user) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
-        this.user = user;
+        this.user = (user != null) ? user : Database.getActiveUser();
 
         setLayout(new BorderLayout());
 
-        JPanel headerPanel = new JPanel();
+        URL imageUrl = getClass().getResource("graphics/scheduleMenuBorder.png");
+        Image backgroundImage = imageUrl != null ? new ImageIcon(imageUrl).getImage() : null;
+
+        JPanel headerPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (backgroundImage != null) {
+                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
+                }
+            }
+        };
+
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setOpaque(backgroundImage == null);
         headerPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY),
                 BorderFactory.createEmptyBorder(15, 10, 15, 10)));
@@ -59,8 +76,8 @@ public final class GUI_Schedule extends JPanel {
         timeLabel.setText(LocalDateTime.now().format(formatter));
         clockTimer = new Timer(1000, e -> timeLabel.setText(LocalDateTime.now().format(formatter)));
 
-        if (user != null && user.getSchedule() != null) {
-            for (TaskData task : user.getSchedule()) {
+        if (this.user != null && this.user.getSchedule() != null) {
+            for (TaskData task : this.user.getSchedule()) {
                 loadTaskIntoMap(task);
             }
         }
@@ -128,7 +145,6 @@ public final class GUI_Schedule extends JPanel {
         String[] repeatOptions = {"NONE", "DAILY", "WEEKLY", "MONTHLY", "INTERVAL"};
         JComboBox<String> recurrenceBox = new JComboBox<>(repeatOptions);
 
-        // Interval components (hidden by default)
         JLabel intervalLabel = new JLabel("Repeat Every (Days):");
         JTextField intervalField = createNumericTextField(10);
         intervalLabel.setVisible(false);
@@ -154,13 +170,11 @@ public final class GUI_Schedule extends JPanel {
         gbc.gridx = 1;
         formPanel.add(recurrenceBox, gbc);
 
-        // Row 3: Dynamic Interval Field
         gbc.gridx = 0; gbc.gridy = 3;
         formPanel.add(intervalLabel, gbc);
         gbc.gridx = 1;
         formPanel.add(intervalField, gbc);
 
-        // Toggle interval input visibility and resize dialog when selection changes
         recurrenceBox.addActionListener(e -> {
             boolean isInterval = "INTERVAL".equals(recurrenceBox.getSelectedItem());
             intervalLabel.setVisible(isInterval);
@@ -276,12 +290,12 @@ public final class GUI_Schedule extends JPanel {
             return;
         }
 
-        TaskData selected = (TaskData) JOptionPane.showInputDialog(
+        Object selectedObj = JOptionPane.showInputDialog(
                 this, "Select a task to remove:", "Remove Task",
                 JOptionPane.PLAIN_MESSAGE, null, allTasks.toArray(), allTasks.get(0)
         );
 
-        if (selected != null) {
+        if (selectedObj instanceof TaskData selected) {
             List<TaskData> list = taskMap.get(selected.getStartDate());
             if (list != null) {
                 list.remove(selected);

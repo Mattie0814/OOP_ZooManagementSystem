@@ -79,7 +79,8 @@
         "species": "Gorilla",
         "gender": "Female",
         "birthDate": "2014-12-03",
-        "healthStatus": "Healthy"
+        "healthStatus": "Healthy",
+        "imagePath": "D:\\OneDrive\\Documents\\IMG_20231014_0002.jpg"
       }
     ]
   }
