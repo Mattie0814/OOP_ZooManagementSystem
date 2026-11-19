@@ -4,14 +4,16 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.*;
-import java.net.URL;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public final class GUI_Schedule extends JPanel {
+    private static final DateTimeFormatter CLOCK_FORMATTER =
+            DateTimeFormatter.ofPattern("MMMM dd, yyyy hh:mm:ss a");
+
     private final JLabel timeLabel;
     private final Timer clockTimer;
 
@@ -20,7 +22,6 @@ public final class GUI_Schedule extends JPanel {
     private final CardLayout cardLayout;
     private final JPanel mainPanel;
     private final CalendarPanel calendarPanel;
-
     private final UserData user;
 
     public GUI_Schedule(CardLayout cardLayout, JPanel mainPanel) {
@@ -34,21 +35,28 @@ public final class GUI_Schedule extends JPanel {
 
         setLayout(new BorderLayout());
 
-        URL imageUrl = getClass().getResource("graphics/scheduleMenuBorder.png");
-        Image backgroundImage = imageUrl != null ? new ImageIcon(imageUrl).getImage() : null;
+        timeLabel = new JLabel("", SwingConstants.CENTER);
+        timeLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        timeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JPanel headerPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                if (backgroundImage != null) {
-                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-                }
-            }
-        };
+        JPanel headerPanel = createHeaderPanel(timeLabel);
+        JPanel optionsPanel = createOptionsPanel();
+        this.calendarPanel = new CalendarPanel(this);
 
+        add(headerPanel, BorderLayout.NORTH);
+        add(optionsPanel, BorderLayout.WEST);
+        add(calendarPanel, BorderLayout.CENTER);
+
+        updateClockLabel();
+        clockTimer = new Timer(1000, e -> updateClockLabel());
+
+        loadInitialTasks();
+        calendarPanel.refreshCalendar();
+    }
+
+    private JPanel createHeaderPanel(JLabel clockLabel) {
+        JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
-        headerPanel.setOpaque(backgroundImage == null);
         headerPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY),
                 BorderFactory.createEmptyBorder(15, 10, 15, 10)));
@@ -57,32 +65,61 @@ public final class GUI_Schedule extends JPanel {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        timeLabel = new JLabel("", SwingConstants.CENTER);
-        timeLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        timeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         headerPanel.add(titleLabel);
         headerPanel.add(Box.createVerticalStrut(5));
-        headerPanel.add(timeLabel);
+        headerPanel.add(clockLabel);
+        return headerPanel;
+    }
 
-        JPanel optionsPanel = createOptionsPanel();
-        calendarPanel = new CalendarPanel(this);
+    private JPanel createOptionsPanel() {
+        JPanel optionsPanel = new JPanel();
+        optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
+        optionsPanel.setPreferredSize(new Dimension(220, 0));
+        optionsPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                BorderFactory.createEmptyBorder(25, 15, 25, 15)));
 
-        add(headerPanel, BorderLayout.NORTH);
-        add(optionsPanel, BorderLayout.WEST);
-        add(calendarPanel, BorderLayout.CENTER);
+        JLabel optionsLabel = new JLabel("OPTIONS");
+        optionsLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        optionsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy hh:mm:ss a");
-        timeLabel.setText(LocalDateTime.now().format(formatter));
-        clockTimer = new Timer(1000, e -> timeLabel.setText(LocalDateTime.now().format(formatter)));
+        JButton addButton = new JButton("Add Task Today");
+        JButton removeButton = new JButton("Remove Task");
+        JButton notificationButton = new JButton("Notifications");
 
-        if (this.user != null && this.user.getSchedule() != null) {
-            for (TaskData task : this.user.getSchedule()) {
+        Dimension buttonSize = new Dimension(180, 40);
+        JButton[] buttons = {addButton, removeButton, notificationButton};
+        for (JButton b : buttons) {
+            b.setMaximumSize(buttonSize);
+            b.setAlignmentX(Component.CENTER_ALIGNMENT);
+            b.setFocusPainted(false);
+        }
+
+        addButton.addActionListener(e -> promptAddTask(LocalDate.now()));
+        removeButton.addActionListener(e -> removeTaskDialog());
+        notificationButton.addActionListener(e -> showNotifications());
+
+        optionsPanel.add(optionsLabel);
+        optionsPanel.add(Box.createVerticalStrut(25));
+        optionsPanel.add(addButton);
+        optionsPanel.add(Box.createVerticalStrut(15));
+        optionsPanel.add(removeButton);
+        optionsPanel.add(Box.createVerticalStrut(15));
+        optionsPanel.add(notificationButton);
+
+        return optionsPanel;
+    }
+
+    private void updateClockLabel() {
+        timeLabel.setText(LocalDateTime.now().format(CLOCK_FORMATTER));
+    }
+
+    private void loadInitialTasks() {
+        if (user != null && user.getSchedule() != null) {
+            for (TaskData task : user.getSchedule()) {
                 loadTaskIntoMap(task);
             }
         }
-
-        calendarPanel.refreshCalendar();
     }
 
     @Override
@@ -95,62 +132,6 @@ public final class GUI_Schedule extends JPanel {
     public void removeNotify() {
         clockTimer.stop();
         super.removeNotify();
-    }
-
-    private JPanel createOptionsPanel() {
-        JPanel optionsPanel = new JPanel();
-        optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
-        optionsPanel.setPreferredSize(new Dimension(220, 0));
-        optionsPanel.setBorder(BorderFactory.createEmptyBorder(25, 15, 25, 15));
-        optionsPanel.setBackground(new Color(240, 240, 240));
-
-        JLabel optionsLabel = new JLabel("OPTIONS");
-        optionsLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        optionsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JButton addButton = new JButton("Add Task Today");
-        JButton removeButton = new JButton("Remove Task");
-        JButton notificationButton = new JButton("Notifications");
-        JButton returnButton = new JButton("Return to Main");
-
-        Dimension buttonSize = new Dimension(180, 40);
-        JButton[] buttons = {addButton, removeButton, notificationButton, returnButton};
-        for (JButton b : buttons) {
-            b.setMaximumSize(buttonSize);
-            b.setAlignmentX(Component.CENTER_ALIGNMENT);
-        }
-
-        addButton.addActionListener(e -> promptAddTask(LocalDate.now()));
-        removeButton.addActionListener(e -> removeTaskDialog());
-        notificationButton.addActionListener(e -> showNotifications());
-        returnButton.addActionListener(e -> cardLayout.show(mainPanel, "MAIN"));
-
-        optionsPanel.add(optionsLabel);
-        optionsPanel.add(Box.createVerticalStrut(25));
-        optionsPanel.add(addButton);
-        optionsPanel.add(Box.createVerticalStrut(15));
-        optionsPanel.add(removeButton);
-        optionsPanel.add(Box.createVerticalStrut(15));
-        optionsPanel.add(notificationButton);
-        optionsPanel.add(Box.createVerticalStrut(15));
-        optionsPanel.add(returnButton);
-
-        URL imageUrl = getClass().getResource("graphics/scheduleMenuBorder.png");
-        Image backgroundImage = imageUrl != null ? new ImageIcon(imageUrl).getImage() : null;
-
-        JPanel headerPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                if (backgroundImage != null) {
-                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-                }
-            }
-        };
-
-        headerPanel.setOpaque(backgroundImage == null);
-
-        return optionsPanel;
     }
 
     public void promptAddTask(LocalDate date) {
@@ -216,11 +197,14 @@ public final class GUI_Schedule extends JPanel {
                 JOptionPane.PLAIN_MESSAGE
         );
 
-        if (result != JOptionPane.OK_OPTION) return;
+        if (result != JOptionPane.OK_OPTION) {
+            return;
+        }
 
         String name = nameField.getText().trim();
         if (name.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Task name cannot be empty.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this, "Task name cannot be empty.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -231,13 +215,23 @@ public final class GUI_Schedule extends JPanel {
         if ("INTERVAL".equals(recurrence)) {
             String intervalText = intervalField.getText().trim();
             if (intervalText.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please enter an interval in days.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        this, "Please enter an interval in days.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            int intervalDays = Integer.parseInt(intervalText);
+            int intervalDays;
+            try {
+                intervalDays = Integer.parseInt(intervalText);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(
+                        this, "Please enter a valid number of days.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             if (intervalDays <= 0) {
-                JOptionPane.showMessageDialog(this, "Interval must be at least 1 day.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(
+                        this, "Interval must be at least 1 day.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -254,14 +248,16 @@ public final class GUI_Schedule extends JPanel {
         JTextField field = new JTextField(columns);
         ((AbstractDocument) field.getDocument()).setDocumentFilter(new DocumentFilter() {
             @Override
-            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
+                    throws BadLocationException {
                 if (string != null && string.matches("\\d+")) {
                     super.insertString(fb, offset, string, attr);
                 }
             }
 
             @Override
-            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+                    throws BadLocationException {
                 if (text != null && text.matches("\\d*")) {
                     super.replace(fb, offset, length, text, attrs);
                 }
@@ -287,9 +283,13 @@ public final class GUI_Schedule extends JPanel {
     public List<TaskData> getTasksForDate(LocalDate date) {
         List<TaskData> result = new ArrayList<>();
         for (List<TaskData> list : taskMap.values()) {
-            for (TaskData t : list) {
-                if (t.occursOn(date)) {
-                    result.add(t);
+            for (TaskData task : list) {
+                if (task.getStartDate() != null && task.getStartDate().isBefore(LocalDate.now())) {
+                    continue;
+                }
+
+                if (task.occursOn(date)) {
+                    result.add(task);
                 }
             }
         }
@@ -301,7 +301,8 @@ public final class GUI_Schedule extends JPanel {
         taskMap.values().forEach(allTasks::addAll);
 
         if (allTasks.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No tasks available to remove.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this, "No tasks available to remove.", "Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
@@ -323,7 +324,26 @@ public final class GUI_Schedule extends JPanel {
     }
 
     private void showNotifications() {
-        JOptionPane.showMessageDialog(this, "Notification system coming soon.", "Notifications", JOptionPane.INFORMATION_MESSAGE);
+        List<String> notifications =
+                NotificationCenter.getCurrentNotifications(LocalDateTime.now(), user);
+        if (notifications.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this, "No current notifications.", "Notifications", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JTextArea message = new JTextArea(String.join("\n\n", notifications));
+        message.setEditable(false);
+        message.setLineWrap(true);
+        message.setWrapStyleWord(true);
+        message.setColumns(45);
+        message.setRows(Math.min(12, Math.max(4, notifications.size() * 2)));
+        JOptionPane.showMessageDialog(
+                this,
+                new JScrollPane(message),
+                "Notifications",
+                JOptionPane.WARNING_MESSAGE
+        );
     }
 }
 
@@ -339,50 +359,42 @@ class CalendarPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        createHeader();
+        add(createMonthHeader(), BorderLayout.NORTH);
 
         JPanel centerPanel = new JPanel(new BorderLayout(0, 5));
         centerPanel.add(createDayNames(), BorderLayout.NORTH);
         centerPanel.add(calendarGrid, BorderLayout.CENTER);
 
         add(centerPanel, BorderLayout.CENTER);
-
-        URL imageUrl = getClass().getResource("graphics/scheduleMenuBorder.png");
-        Image backgroundImage = imageUrl != null ? new ImageIcon(imageUrl).getImage() : null;
-
-        JPanel headerPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                if (backgroundImage != null) {
-                    g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-                }
-            }
-        };
-
-        headerPanel.setOpaque(backgroundImage == null);
     }
 
-    private void createHeader() {
-        JPanel headerPanel = new JPanel(new BorderLayout());
+    private JPanel createMonthHeader() {
+        JPanel monthHeader = new JPanel(new BorderLayout());
+
         JButton previousButton = new JButton("<");
         JButton nextButton = new JButton(">");
         monthLabel.setFont(new Font("Arial", Font.BOLD, 20));
 
-        previousButton.addActionListener(e -> { currentMonth = currentMonth.minusMonths(1); refreshCalendar(); });
-        nextButton.addActionListener(e -> { currentMonth = currentMonth.plusMonths(1); refreshCalendar(); });
+        previousButton.addActionListener(e -> {
+            currentMonth = currentMonth.minusMonths(1);
+            refreshCalendar();
+        });
+        nextButton.addActionListener(e -> {
+            currentMonth = currentMonth.plusMonths(1);
+            refreshCalendar();
+        });
 
-        headerPanel.add(previousButton, BorderLayout.WEST);
-        headerPanel.add(monthLabel, BorderLayout.CENTER);
-        headerPanel.add(nextButton, BorderLayout.EAST);
+        monthHeader.add(previousButton, BorderLayout.WEST);
+        monthHeader.add(monthLabel, BorderLayout.CENTER);
+        monthHeader.add(nextButton, BorderLayout.EAST);
 
-        add(headerPanel, BorderLayout.NORTH);
+        return monthHeader;
     }
 
     private JPanel createDayNames() {
         JPanel dayNamePanel = new JPanel(new GridLayout(1, 7, 5, 5));
-        DayOfWeek[] days = DayOfWeek.values();
-        for (DayOfWeek day : days) {
+
+        for (DayOfWeek day : DayOfWeek.values()) {
             JLabel label = new JLabel(day.name().substring(0, 3), SwingConstants.CENTER);
             label.setFont(new Font("Arial", Font.BOLD, 12));
             label.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
@@ -412,13 +424,17 @@ class CalendarPanel extends JPanel {
                 LocalDate date = currentMonth.atDay(dayNumber);
                 List<TaskData> tasksForDay = parentSchedule.getTasksForDate(date);
 
-                String buttonText = "<html><center><b>" + dayNumber + "</b>";
+                StringBuilder buttonText = new StringBuilder("<html><center><b>")
+                        .append(dayNumber)
+                        .append("</b>");
                 if (!tasksForDay.isEmpty()) {
-                    buttonText += "<br><font color='blue' size='2'>" + tasksForDay.size() + " Task(s)</font>";
+                    buttonText.append("<br><font color='blue' size='2'>")
+                            .append(tasksForDay.size())
+                            .append(" Task(s)</font>");
                 }
-                buttonText += "</center></html>";
+                buttonText.append("</center></html>");
 
-                JButton dayButton = new JButton(buttonText);
+                JButton dayButton = new JButton(buttonText.toString());
                 dayButton.setMargin(new Insets(2, 2, 2, 2));
 
                 if (date.equals(LocalDate.now())) {
@@ -435,7 +451,7 @@ class CalendarPanel extends JPanel {
     }
 
     private void handleDateClick(LocalDate date, List<TaskData> tasks) {
-        StringBuilder msg = new StringBuilder("Schedule for " + date + ":\n\n");
+        StringBuilder msg = new StringBuilder("Schedule for ").append(date).append(":\n\n");
         if (tasks.isEmpty()) {
             msg.append("No tasks scheduled.");
         } else {
@@ -469,10 +485,14 @@ class TimeInputPanel extends JPanel {
         setLayout(new FlowLayout(FlowLayout.LEFT, 4, 0));
 
         String[] hours = new String[12];
-        for (int i = 0; i < 12; i++) hours[i] = String.format("%02d", i + 1);
+        for (int i = 0; i < 12; i++) {
+            hours[i] = String.format("%02d", i + 1);
+        }
 
         String[] minutes = new String[60];
-        for (int i = 0; i < 60; i++) minutes[i] = String.format("%02d", i);
+        for (int i = 0; i < 60; i++) {
+            minutes[i] = String.format("%02d", i);
+        }
 
         hourBox = createInputBox(hours);
         minuteBox = createInputBox(minutes);

@@ -8,16 +8,20 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.io.File;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public final class GUI_Animal extends JPanel {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
+
     private final Map<EnclosureData, ArrayList<AnimalData>> enclosureMap = new HashMap<>();
     private final ArrayList<EnclosureData> enclosures;
 
     private final JTextField searchField;
+    private final DateInputPanel birthdateField = new DateInputPanel();
 
     private final JTable animalTable;
     private final DefaultTableModel animalTableModel;
@@ -28,12 +32,11 @@ public final class GUI_Animal extends JPanel {
     private final JLabel photoLabel = new JLabel("No photo selected", JLabel.CENTER);
 
     public GUI_Animal(CardLayout cardLayout, JPanel mainPanel) {
-        ArrayList<EnclosureData> loaded = Database.loadEnclosures();
+        ArrayList<EnclosureData> loaded = Database.getEnclosureList();
         this.enclosures = (loaded != null) ? loaded : new ArrayList<>();
 
         setLayout(new BorderLayout());
 
-        // Top Search & Action Bar
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         topPanel.setBorder(BorderFactory.createTitledBorder("Search & Registration"));
 
@@ -46,21 +49,18 @@ public final class GUI_Animal extends JPanel {
         JButton updateAnimalButton = new JButton("Update Animal");
         JButton removeAnimalButton = new JButton("Remove Animal");
         JButton addEnclosureButton = new JButton("Add Enclosure");
-        JButton returnButton = new JButton("Return to Main");
 
         clearSearchButton.addActionListener(e -> searchField.setText(""));
         registerAnimalButton.addActionListener(e -> openAnimalRegistrationForm());
         updateAnimalButton.addActionListener(e -> openAnimalUpdateForm());
         removeAnimalButton.addActionListener(e -> removeSelectedAnimal());
         addEnclosureButton.addActionListener(e -> openAddEnclosureForm());
-        returnButton.addActionListener(e -> cardLayout.show(mainPanel, "MAIN"));
 
         topPanel.add(clearSearchButton);
         topPanel.add(registerAnimalButton);
         topPanel.add(updateAnimalButton);
         topPanel.add(removeAnimalButton);
         topPanel.add(addEnclosureButton);
-        topPanel.add(returnButton);
 
         // Animals Table
         String[] animalCols = {
@@ -185,6 +185,15 @@ public final class GUI_Animal extends JPanel {
         loadAnimalToTable(animal, enclosure);
         updateEnclosureTable();
         Database.saveEnclosures(enclosures);
+    }
+
+    private JPanel createBirthdatePanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        panel.add(birthdateField);
+
+        return panel;
     }
 
     private AnimalData findAnimalByName(String animalName) {
@@ -328,7 +337,7 @@ public final class GUI_Animal extends JPanel {
         formPanel.add(new JLabel("Gender:"));
         formPanel.add(genderBox);
         formPanel.add(new JLabel("Birth Date (YYYY-MM-DD):"));
-        formPanel.add(birthDateField);
+        formPanel.add(createBirthdatePanel());
         formPanel.add(new JLabel("Animal Photo:"));
         formPanel.add(imagePanel);
         formPanel.add(new JLabel("Enclosure Location:"));
@@ -346,22 +355,13 @@ public final class GUI_Animal extends JPanel {
         String name = nameField.getText().trim();
         String species = speciesField.getText().trim();
         String gender = (String) genderBox.getSelectedItem();
-        String birthDate = birthDateField.getText().trim();
+        LocalDate birthDate = birthdateField.getSelectedDate();
         EnclosureData selectedEnclosure = (EnclosureData) enclosureBox.getSelectedItem();
         String healthStatus = (String) healthBox.getSelectedItem();
 
         if (name.isEmpty() || species.isEmpty()) {
             showError("Name and Species are required!");
             return;
-        }
-
-        if (!birthDate.isEmpty()) {
-            try {
-                LocalDate.parse(birthDate);
-            } catch (DateTimeParseException ex) {
-                showError("Birth Date must be a valid date in YYYY-MM-DD format.");
-                return;
-            }
         }
 
         if (selectedEnclosure == null) {
@@ -415,7 +415,7 @@ public final class GUI_Animal extends JPanel {
         JTextField speciesField = new JTextField(targetAnimal.getSpecies());
         JComboBox<String> genderBox = new JComboBox<>(new String[]{"Male", "Female", "Unknown"});
         genderBox.setSelectedItem(targetAnimal.getGender());
-        JTextField birthDateField = new JTextField(targetAnimal.getBirthDate());
+        DateInputPanel birthdateField = new DateInputPanel();
         JTextField imagePathField = new JTextField(targetAnimal.getImagePath() != null ? targetAnimal.getImagePath() : "");
         imagePathField.setEditable(false);
         JButton browseImageButton = new JButton("Browse...");
@@ -455,7 +455,7 @@ public final class GUI_Animal extends JPanel {
         formPanel.add(new JLabel("Gender:"));
         formPanel.add(genderBox);
         formPanel.add(new JLabel("Birth Date (YYYY-MM-DD):"));
-        formPanel.add(birthDateField);
+        formPanel.add(createBirthdatePanel());
         formPanel.add(new JLabel("Animal Photo:"));
         formPanel.add(imagePanel);
         formPanel.add(new JLabel("Enclosure Location:"));
@@ -471,22 +471,13 @@ public final class GUI_Animal extends JPanel {
 
         String species = speciesField.getText().trim();
         String gender = (String) genderBox.getSelectedItem();
-        String birthDate = birthDateField.getText().trim();
+        LocalDate birthDate = birthdateField.getSelectedDate();
         EnclosureData newEnclosure = (EnclosureData) enclosureBox.getSelectedItem();
         String healthStatus = (String) healthBox.getSelectedItem();
 
         if (species.isEmpty()) {
             showError("Species is required!");
             return;
-        }
-
-        if (!birthDate.isEmpty()) {
-            try {
-                LocalDate.parse(birthDate);
-            } catch (DateTimeParseException ex) {
-                showError("Birth Date must be a valid date in YYYY-MM-DD format.");
-                return;
-            }
         }
 
         if (newEnclosure == null) {

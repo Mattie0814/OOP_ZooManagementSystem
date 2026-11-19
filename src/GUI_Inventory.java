@@ -1,18 +1,21 @@
 import java.awt.*;
+import java.awt.event.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 
 public final class GUI_Inventory extends JPanel {
-	//Categories
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
+
+    //Categories
     private static final String FOOD = "Food";
     private static final String MEDICINE = "Medicine";
     private static final String MISC = "Miscellaneous";
@@ -22,11 +25,11 @@ public final class GUI_Inventory extends JPanel {
 
     private final CardLayout tableCardLayout = new CardLayout();
     private final JPanel tableCardsPanel = new JPanel(tableCardLayout);
-    
+
     private String currentCategory = FOOD;
 
-    private final ArrayList<ItemData> inventory = Database.loadInventory();
-    
+    private final ArrayList<ItemData> inventory = Database.getInventoryList();
+
     private final Map<String, JTable> tables = new LinkedHashMap<>();
 
     //Table models
@@ -34,7 +37,7 @@ public final class GUI_Inventory extends JPanel {
     private final DefaultTableModel medicineModel = createModel("Name", "Stock", "Date Procured", "ID");
     private final DefaultTableModel miscellaneousModel = createModel("Name", "Stock", "Date Procured", "ID");
     private final DefaultTableModel allModel = createModel("Name", "Stock", "Date Procured", "Animals", "ID", "Type");
-    
+
     public GUI_Inventory(CardLayout cardLayout, JPanel mainPanel) {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -70,13 +73,8 @@ public final class GUI_Inventory extends JPanel {
             }
         });
 
-        //Button to return to Main Menu
-        JButton returnButton = new JButton("Return to Main");
-        returnButton.addActionListener(e -> cardLayout.show(mainPanel, "MAIN"));
-
         topActions.add(addInventory);
-        topActions.add(returnButton);
-        
+
         JPanel bottomActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
 
         //Delete Button
@@ -89,7 +87,7 @@ public final class GUI_Inventory extends JPanel {
         deleteButton.setFocusPainted(false);
         deleteButton.addActionListener(e -> deleteItems());
         bottomActions.add(deleteButton);
-        
+
         //Update Button
         JButton updateButton = new JButton("Update");
         updateButton.addActionListener(e -> updateItems());
@@ -128,7 +126,7 @@ public final class GUI_Inventory extends JPanel {
         tableCardsPanel.add(createCategoryPanel(MEDICINE, medicineModel), MEDICINE);
         tableCardsPanel.add(createCategoryPanel(MISC, miscellaneousModel), MISC);
         tableCardsPanel.add(createCategoryPanel(ALL, allModel), ALL);
-        
+
         add(tableCardsPanel, BorderLayout.CENTER);
 
         //loads data and populates table
@@ -146,7 +144,7 @@ public final class GUI_Inventory extends JPanel {
         return new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
-            
+
             @Override
             public Class <?> getColumnClass(int column){
             	if(column == 1) {
@@ -165,20 +163,20 @@ public final class GUI_Inventory extends JPanel {
         JPanel topPanel = new JPanel();
         JLabel inventoryTitle = new JLabel(category + " Inventory");
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
-        
+
         inventoryTitle.setFont(new Font("Arial", Font.BOLD, 40));
         inventoryTitle.setForeground(Color.BLACK);
         inventoryTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         inventoryTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         searchPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         topPanel.add(inventoryTitle);
         topPanel.add(Box.createVerticalStrut(8));
         topPanel.add(searchPanel);
         panel.add(topPanel, BorderLayout.NORTH);
-        
+
         //default text placeholder
         searchField.setText("Search...");
         searchField.setForeground(Color.GRAY);
@@ -229,19 +227,19 @@ public final class GUI_Inventory extends JPanel {
             }
         });
         clearButton.addActionListener(e -> searchField.setText(""));
-        
+
         searchBox.setPreferredSize(new Dimension(280, 32));
         searchBox.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1, true));
         searchBox.add(searchField, BorderLayout.CENTER);
         searchBox.add(clearButton, BorderLayout.EAST);
         searchPanel.add(searchBox);
-        
+
         //Inventory table
         JTable table = new JTable(model);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
         tables.put(category, table);
-        
+
         table.setFillsViewportHeight(true);
         table.addMouseListener(new MouseAdapter() {
             @Override
@@ -254,7 +252,7 @@ public final class GUI_Inventory extends JPanel {
                 }
             }
         });
-        
+
         //Highlight 0 stock
         DefaultTableCellRenderer stockRenderer = new DefaultTableCellRenderer() {
             @Override
@@ -275,7 +273,7 @@ public final class GUI_Inventory extends JPanel {
         };
         table.setDefaultRenderer(Object.class, stockRenderer);
         table.setDefaultRenderer(Integer.class, stockRenderer);
-        
+
         //Sorts table
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
         sorter.setSortable(2, false);
@@ -289,7 +287,7 @@ public final class GUI_Inventory extends JPanel {
         	sorter.setSortable(4, false);
         	sorter.setSortable(5, false);
         }
-        
+
         table.setRowSorter(sorter);
         installItemPopup(table);
         panel.add(new JScrollPane(table), BorderLayout.CENTER);
@@ -297,57 +295,57 @@ public final class GUI_Inventory extends JPanel {
         addSearchListener(searchField, sorter);
         return panel;
     }
-        	
+
     private void installItemPopup(JTable table) {
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                int row = table.rowAtPoint(e.getPoint());
-                int column = table.columnAtPoint(e.getPoint());
+            int row = table.rowAtPoint(e.getPoint());
+            int column = table.columnAtPoint(e.getPoint());
 
-                //Normal right click
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    if (row == -1 || column == -1) {
-                        return;
-                    }
-
-                    table.setRowSelectionInterval(row, row);
-
-                    int modelRow = table.convertRowIndexToModel(row);
-                    int idColumn = table.getColumnModel().getColumnIndex("ID");
-                    String ID = table.getModel().getValueAt(modelRow, idColumn).toString();
-                    ItemData item = manager.getItem(ID);
-
-                    //Delete and U[date Options
-                    JPopupMenu menu = new JPopupMenu();
-                    JMenuItem deleteOption = new JMenuItem("Delete");
-                    JMenuItem updateOption = new JMenuItem("Update");
-
-                    deleteOption.addActionListener(a -> deleteSingleItem(item));
-                    updateOption.addActionListener(a -> showEditWindow(item));
-
-                    menu.add(deleteOption);
-                    menu.add(updateOption);
-
-                    menu.show(table, e.getX(), e.getY());
-
+            //Normal right click
+            if (SwingUtilities.isRightMouseButton(e)) {
+                if (row == -1 || column == -1) {
                     return;
                 }
 
-                // Normal left click
-                if (SwingUtilities.isLeftMouseButton(e)) {
-                    if (e.isControlDown() || e.isShiftDown()) {
-                        return;
-                    }
-                    if (row == -1 || column == -1) {
-                        return;
-                    }
-                    int modelRow = table.convertRowIndexToModel(row);
-                    //Item Details
-                    SwingUtilities.invokeLater(() -> {
-                    	showItemDetailsPopup(table, modelRow, e.getX(), e.getY());
-                    });
+                table.setRowSelectionInterval(row, row);
+
+                int modelRow = table.convertRowIndexToModel(row);
+                int idColumn = table.getColumnModel().getColumnIndex("ID");
+                String ID = table.getModel().getValueAt(modelRow, idColumn).toString();
+                ItemData item = manager.getItem(ID);
+
+                //Delete and U[date Options
+                JPopupMenu menu = new JPopupMenu();
+                JMenuItem deleteOption = new JMenuItem("Delete");
+                JMenuItem updateOption = new JMenuItem("Update");
+
+                deleteOption.addActionListener(a -> deleteSingleItem(item));
+                updateOption.addActionListener(a -> showEditWindow(item));
+
+                menu.add(deleteOption);
+                menu.add(updateOption);
+
+                menu.show(table, e.getX(), e.getY());
+
+                return;
+            }
+
+            // Normal left click
+            if (SwingUtilities.isLeftMouseButton(e)) {
+                if (e.isControlDown() || e.isShiftDown()) {
+                    return;
                 }
+                if (row == -1 || column == -1) {
+                    return;
+                }
+                int modelRow = table.convertRowIndexToModel(row);
+                //Item Details
+                SwingUtilities.invokeLater(() -> {
+                    showItemDetailsPopup(table, modelRow, e.getX(), e.getY());
+                });
+            }
             }
         });
     }
@@ -374,7 +372,7 @@ public final class GUI_Inventory extends JPanel {
             }
             detailsPanel.add(label);
         }
-        
+
         JLabel updateLabel = new JLabel(
         	    "Update: " + manager.getItem(
         	        table.getModel().getValueAt(modelRow,
@@ -398,11 +396,10 @@ public final class GUI_Inventory extends JPanel {
     }
 
     private void showAddWindow(String type) {
-    	//Add Window
         Window parentWindow = SwingUtilities.getWindowAncestor(this);
         JDialog dialog = new JDialog(parentWindow, "Add " + type + " Item", Dialog.ModalityType.APPLICATION_MODAL);
 
-        dialog.setSize(420, 320);
+        dialog.setSize(440, 340);
         dialog.setLocationRelativeTo(parentWindow);
         dialog.setResizable(false);
 
@@ -428,20 +425,20 @@ public final class GUI_Inventory extends JPanel {
         gbc.gridx = 1; gbc.weightx = 1;
         formPanel.add(stockField, gbc);
 
-        JLabel procureLabel = new JLabel("Date Procured:");
-        JTextField procureField = new JTextField(20);
+        JLabel procureLabel = new JLabel("Date Procured (MM/DD/YYYY):");
+        DateInputPanel procureDatePanel = new DateInputPanel();
         gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
         formPanel.add(procureLabel, gbc);
         gbc.gridx = 1; gbc.weightx = 1;
-        formPanel.add(procureField, gbc);
-        
+        formPanel.add(procureDatePanel, gbc);
+
         JLabel updateLabel = new JLabel("Update Amount:");
         JTextField updateField = new JTextField(20);
         gbc.gridx = 0; gbc.gridy = 4; gbc.weightx = 0;
         formPanel.add(updateLabel, gbc);
         gbc.gridx = 1; gbc.weightx = 1;
         formPanel.add(updateField, gbc);
-            
+
         JTextField animalsField = null;
         if (type.equals(FOOD)) {
             JLabel animalsLabel = new JLabel("Animals:");
@@ -452,7 +449,7 @@ public final class GUI_Inventory extends JPanel {
             formPanel.add(animalsField, gbc);
         }
 
-        //Cancel and Add Button
+        // Cancel and Add Button
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton cancelButton = new JButton("Cancel");
         JButton addButton = new JButton("Add");
@@ -460,16 +457,12 @@ public final class GUI_Inventory extends JPanel {
         buttonPanel.add(cancelButton);
         buttonPanel.add(addButton);
 
-        //closes dialog
         cancelButton.addActionListener(e -> dialog.dispose());
 
-        //Final reference for field
-        JTextField finalExpiryField = procureField;
         JTextField finalAnimalsField = animalsField;
         JTextField finalUpdateField = updateField;
 
         addButton.addActionListener(e -> {
-        	//Warning messages
             String name = nameField.getText().trim();
             String stockText = stockField.getText().trim();
 
@@ -477,7 +470,7 @@ public final class GUI_Inventory extends JPanel {
                 JOptionPane.showMessageDialog(dialog, "Please enter an item name.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            
+
             int stock;
             try {
                 stock = Integer.parseInt(stockText);
@@ -486,24 +479,19 @@ public final class GUI_Inventory extends JPanel {
                 JOptionPane.showMessageDialog(dialog, "Stock must be a valid non-negative number.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            
+
             String updateText = finalUpdateField.getText().trim();
             int update;
             try {
-            	update = Integer.parseInt(updateText);
-            	if (update < 0) throw new NumberFormatException();
+                update = Integer.parseInt(updateText);
+                if (update < 0) throw new NumberFormatException();
             } catch (NumberFormatException ex) {
-            	JOptionPane.showMessageDialog(dialog, "Update must be a valid non-negative number", "Invalid Input", JOptionPane.WARNING_MESSAGE);
-            	return;
-            }
-            
-            String dateProcured = finalExpiryField.getText().trim();
-            if (dateProcured.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Please enter the Procured date.", "Invalid Input", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Update must be a valid non-negative number", "Invalid Input", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            //Creation of food item
+            String dateProcured = procureDatePanel.getFormattedDate(DATE_FORMATTER);
+
             if (type.equals(FOOD)) {
                 String animals = finalAnimalsField.getText().trim();
                 if (animals.isEmpty()) {
@@ -512,29 +500,27 @@ public final class GUI_Inventory extends JPanel {
                 }
                 String ID;
                 do {
-                	ID = FoodItem.foodID();
-                } while(manager.getItem(ID) != null);
+                    ID = FoodItem.foodID();
+                } while (manager.getItem(ID) != null);
                 manager.addItem(new FoodItem(name, stock, dateProcured, animals, ID, update));
-            //Medicine item
             } else if (type.equals(MEDICINE)) {
                 String ID;
                 do {
-                	ID = MedicineItem.medicineID();
-                } while(manager.getItem(ID) != null);
+                    ID = MedicineItem.medicineID();
+                } while (manager.getItem(ID) != null);
                 manager.addItem(new MedicineItem(name, stock, dateProcured, ID, update));
-            //Misc item
             } else {
-            	String ID;
+                String ID;
                 do {
-                	ID = MiscellaneousItem.miscellaneousID();
-                } while(manager.getItem(ID) != null);
+                    ID = MiscellaneousItem.miscellaneousID();
+                } while (manager.getItem(ID) != null);
                 manager.addItem(new MiscellaneousItem(name, stock, dateProcured, ID, update));
             }
 
             Database.saveInventory(
-            	new ArrayList<>(manager.getInventory().values())
+                    new ArrayList<>(manager.getInventory().values())
             );
-            
+
             updateTables();
             dialog.dispose();
         });
@@ -545,12 +531,11 @@ public final class GUI_Inventory extends JPanel {
         dialog.add(contentPanel);
         dialog.setVisible(true);
     }
-    
+
     private void showEditWindow(ItemData item) {
         Window parentWindow = SwingUtilities.getWindowAncestor(this);
         String type;
 
-        //determines item type
         if (item instanceof FoodItem) {
             type = FOOD;
         } else if (item instanceof MedicineItem) {
@@ -559,20 +544,19 @@ public final class GUI_Inventory extends JPanel {
             type = MISC;
         }
 
-        //Dialog based on item type
         JDialog dialog = new JDialog(
-            parentWindow,
-            "Update " + type + " Item",
-            Dialog.ModalityType.APPLICATION_MODAL
+                parentWindow,
+                "Update " + type + " Item",
+                Dialog.ModalityType.APPLICATION_MODAL
         );
 
-        dialog.setSize(420, 380);
+        dialog.setSize(440, 390);
         dialog.setLocationRelativeTo(parentWindow);
         dialog.setResizable(false);
 
         JPanel contentPanel = new JPanel(new BorderLayout(10, 10));
         contentPanel.setBorder(
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)
         );
 
         JPanel formPanel = new JPanel(new GridBagLayout());
@@ -581,101 +565,74 @@ public final class GUI_Inventory extends JPanel {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // prevents id edit
+        // Prevents ID edit
         JLabel idLabel = new JLabel("ID:");
         JTextField idField = new JTextField(item.getID(), 20);
         idField.setEditable(false);
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
         formPanel.add(idLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 1;
+        gbc.gridx = 1; gbc.weightx = 1;
         formPanel.add(idField, gbc);
 
         // Name
         JLabel nameLabel = new JLabel("Name:");
         JTextField nameField = new JTextField(item.getName(), 20);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
         formPanel.add(nameLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 1;
+        gbc.gridx = 1; gbc.weightx = 1;
         formPanel.add(nameField, gbc);
 
         // Stock
         JLabel stockLabel = new JLabel("Stock:");
         JTextField stockField = new JTextField(
-            String.valueOf(item.getStock()), 20
+                String.valueOf(item.getStock()), 20
         );
 
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;
         formPanel.add(stockLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 1;
+        gbc.gridx = 1; gbc.weightx = 1;
         formPanel.add(stockField, gbc);
 
         // Date Procured
-        JLabel dateLabel = new JLabel("Date Procured:");
-        JTextField dateField = new JTextField(
-            item.getDateProcured(), 20
-        );
+        JLabel dateLabel = new JLabel("Date Procured (MM/DD/YYYY):");
+        DateInputPanel datePanel = new DateInputPanel(parseOrDefaultDate(item.getDateProcured()));
 
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 3; gbc.weightx = 0;
         formPanel.add(dateLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(dateField, gbc);
+        gbc.gridx = 1; gbc.weightx = 1;
+        formPanel.add(datePanel, gbc);
 
         // Update Amount
         JLabel updateLabel = new JLabel("Update Amount:");
         JTextField updateField = new JTextField(
-            String.valueOf(item.getAutoUpdate()), 20
+                String.valueOf(item.getAutoUpdate()), 20
         );
 
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.weightx = 0;
+        gbc.gridx = 0; gbc.gridy = 4; gbc.weightx = 0;
         formPanel.add(updateLabel, gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 1;
+        gbc.gridx = 1; gbc.weightx = 1;
         formPanel.add(updateField, gbc);
 
         // Animals (Food only)
         JTextField animalsField = null;
 
         if (item instanceof FoodItem) {
-
             FoodItem food = (FoodItem) item;
 
             JLabel animalsLabel = new JLabel("Animals:");
             animalsField = new JTextField(food.getAnimals(), 20);
 
-            gbc.gridx = 0;
-            gbc.gridy = 5;
-            gbc.weightx = 0;
+            gbc.gridx = 0; gbc.gridy = 5; gbc.weightx = 0;
             formPanel.add(animalsLabel, gbc);
-
-            gbc.gridx = 1;
-            gbc.weightx = 1;
+            gbc.gridx = 1; gbc.weightx = 1;
             formPanel.add(animalsField, gbc);
         }
 
-        //Cancel and save buttons
+        // Cancel and save buttons
         JPanel buttonPanel = new JPanel(
-            new FlowLayout(FlowLayout.RIGHT)
+                new FlowLayout(FlowLayout.RIGHT)
         );
 
         JButton cancelButton = new JButton("Cancel");
@@ -689,15 +646,13 @@ public final class GUI_Inventory extends JPanel {
         JTextField finalAnimalsField = animalsField;
 
         saveButton.addActionListener(e -> {
-
             String name = nameField.getText().trim();
-            //Checkers
             if (name.isEmpty()) {
                 JOptionPane.showMessageDialog(
-                    dialog,
-                    "Please enter an item name.",
-                    "Invalid Input",
-                    JOptionPane.WARNING_MESSAGE
+                        dialog,
+                        "Please enter an item name.",
+                        "Invalid Input",
+                        JOptionPane.WARNING_MESSAGE
                 );
                 return;
             }
@@ -707,60 +662,44 @@ public final class GUI_Inventory extends JPanel {
 
             try {
                 stock = Integer.parseInt(stockField.getText().trim());
-
                 if (stock < 0) {
                     throw new NumberFormatException();
                 }
-
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(
-                    dialog,
-                    "Stock must be a valid non-negative number.",
-                    "Invalid Input",
-                    JOptionPane.WARNING_MESSAGE
+                        dialog,
+                        "Stock must be a valid non-negative number.",
+                        "Invalid Input",
+                        JOptionPane.WARNING_MESSAGE
                 );
                 return;
             }
 
             try {
                 update = Integer.parseInt(updateField.getText().trim());
-
                 if (update < 0) {
                     throw new NumberFormatException();
                 }
-
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(
-                    dialog,
-                    "Update must be a valid non-negative number.",
-                    "Invalid Input",
-                    JOptionPane.WARNING_MESSAGE
-                );
-                return;
-            }
-
-            String date = dateField.getText().trim();
-
-            if (date.isEmpty()) {
-                JOptionPane.showMessageDialog(
-                    dialog,
-                    "Please enter the Procured date.",
-                    "Invalid Input",
-                    JOptionPane.WARNING_MESSAGE
-                );
-                return;
-            }
-
-            if (item instanceof FoodItem) {
-
-                String animals = finalAnimalsField.getText().trim();
-
-                if (animals.isEmpty()) {
-                    JOptionPane.showMessageDialog(
                         dialog,
-                        "Please enter the animals.",
+                        "Update must be a valid non-negative number.",
                         "Invalid Input",
                         JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            String date = datePanel.getFormattedDate(DATE_FORMATTER);
+
+            if (item instanceof FoodItem) {
+                String animals = finalAnimalsField.getText().trim();
+                if (animals.isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                            dialog,
+                            "Please enter the animals.",
+                            "Invalid Input",
+                            JOptionPane.WARNING_MESSAGE
                     );
                     return;
                 }
@@ -769,24 +708,23 @@ public final class GUI_Inventory extends JPanel {
                 food.setAnimals(animals);
             }
 
-            // Update item information
             item.setName(name);
             item.setStock(stock);
             item.setDateProcured(date);
             item.setAutoUpdate(update);
 
             Database.saveInventory(
-                new ArrayList<>(manager.getInventory().values())
+                    new ArrayList<>(manager.getInventory().values())
             );
 
             updateTables();
             dialog.dispose();
 
             JOptionPane.showMessageDialog(
-                this,
-                "Item successfully updated!",
-                "Update Complete",
-                JOptionPane.INFORMATION_MESSAGE
+                    this,
+                    "Item successfully updated!",
+                    "Update Complete",
+                    JOptionPane.INFORMATION_MESSAGE
             );
         });
 
@@ -796,7 +734,18 @@ public final class GUI_Inventory extends JPanel {
         dialog.add(contentPanel);
         dialog.setVisible(true);
     }
-    
+
+    private LocalDate parseOrDefaultDate(String rawDate) {
+        if (rawDate == null || rawDate.trim().isEmpty()) {
+            return LocalDate.now();
+        }
+        try {
+            return LocalDate.parse(rawDate.trim(), DATE_FORMATTER);
+        } catch (DateTimeParseException ex) {
+            return LocalDate.now();
+        }
+    }
+
     //Delete for delete button
     private void deleteItems() {
         JTable table = tables.get(currentCategory);
@@ -874,7 +823,7 @@ public final class GUI_Inventory extends JPanel {
 
                 return;
             }
-            
+
             //Delete confirmation of 0 stock items
             int confirm = JOptionPane.showConfirmDialog(
                 this,
@@ -889,7 +838,7 @@ public final class GUI_Inventory extends JPanel {
             if (confirm != JOptionPane.YES_OPTION) {
                 return;
             }
-            
+
             //removes items
             for (String ID : IDs) {
                 manager.removeItem(ID);
@@ -905,7 +854,7 @@ public final class GUI_Inventory extends JPanel {
         table.clearSelection();
 
     }
-    
+
     //Delete for right click delete option
     private void deleteSingleItem(ItemData item) {
         //Confirmation for item delete
@@ -938,7 +887,7 @@ public final class GUI_Inventory extends JPanel {
             JOptionPane.INFORMATION_MESSAGE
         );
     }
-    
+
     private void updateItems() {
         ArrayList<ItemData> itemsToUpdate = new ArrayList<>();
         //Find Item type
@@ -989,7 +938,7 @@ public final class GUI_Inventory extends JPanel {
 
             int stock = item.getStock();
             int update = item.getAutoUpdate();
-            
+
             if (update == 0) {
             	continue;
             }
@@ -1002,8 +951,8 @@ public final class GUI_Inventory extends JPanel {
                     .append(item.getID())
                     .append("\n\n");
 
-            } 
-            
+            }
+
             else if (stock - update <= 0) {
 
                 willBeZero.append("Name: ")
@@ -1041,7 +990,7 @@ public final class GUI_Inventory extends JPanel {
 
         // decrease stock
         for (ItemData item : itemsToUpdate) {
-        	
+
         	int stock = item.getStock();
             int update = item.getAutoUpdate();
 
@@ -1054,7 +1003,7 @@ public final class GUI_Inventory extends JPanel {
             item.setStock(newStock);
             updated = true;
         }
-        
+
         if(!updated) {
         	JOptionPane.showMessageDialog(
                 this,
@@ -1145,4 +1094,3 @@ class InventoryManager {
         return inventory;
     }
 }
-

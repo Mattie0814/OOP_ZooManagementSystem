@@ -1,14 +1,13 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.net.URL;
 import java.util.ArrayList;
 
 public final class GUI_Login extends JFrame{
     private final JTextField usernameField;
     private final JPasswordField passwordField;
 
-    private final ArrayList<UserData> users = Database.loadUsers();
+    private final ArrayList<UserData> users = Database.getUserList();
 
     public GUI_Login() {
         setTitle("ZooTrak - Zoo Management System");
@@ -16,23 +15,16 @@ public final class GUI_Login extends JFrame{
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        URL imageUrl = getClass().getResource("graphics/loginMenuBackground.jpg");
-        Image backgroundImage = imageUrl != null ? new ImageIcon(imageUrl).getImage() : null;
+        BackgroundPanel backgroundPanel = new BackgroundPanel("/graphics/loginMenuBackground.jpg");
+        backgroundPanel.setLayout(new BoxLayout(backgroundPanel, BoxLayout.Y_AXIS));
+        backgroundPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                BorderFactory.createEmptyBorder(15, 10, 15, 10)));
 
-        JPanel panel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            if (backgroundImage != null) {
-                g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-            }
-            }
-        };
+        backgroundPanel.setLayout(new GridLayout(5, 1, 10, 20));
+        backgroundPanel.setBorder(BorderFactory.createEmptyBorder(150, 350, 150, 350));
 
-        panel.setLayout(new GridLayout(5, 1, 10, 20));
-        panel.setBorder(BorderFactory.createEmptyBorder(150, 350, 150, 350));
-
-        ActionListener loginAction = e -> login();
+        ActionListener loginAction = e -> attemptLogin();
 
         usernameField = new JTextField();
         usernameField.setFont(new Font("Arial", Font.PLAIN, 20));
@@ -43,15 +35,20 @@ public final class GUI_Login extends JFrame{
         passwordField.setBorder(BorderFactory.createTitledBorder("Password"));
         passwordField.addActionListener(loginAction);
 
-        panel.add(usernameField);
-        panel.add(passwordField);
-        add(panel, BorderLayout.CENTER);
+        if (Database.getActiveUser() != null){
+            login();
+            return;
+        }
+
+        backgroundPanel.add(usernameField);
+        backgroundPanel.add(passwordField);
+        add(backgroundPanel, BorderLayout.CENTER);
 
         setLocationRelativeTo(null);
         setVisible(true);
     }
 
-    private void login() {
+    private void attemptLogin() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
 
@@ -75,5 +72,10 @@ public final class GUI_Login extends JFrame{
 
         JOptionPane.showMessageDialog(this, "Invalid username or password.",
                 "Login Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void login(){
+        new GUI_MainMenu();
+        dispose();
     }
 }

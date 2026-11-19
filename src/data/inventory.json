@@ -1,63 +1,190 @@
 [
   {
-    "name": "Lion Meat",
+    "name": "Lion Meat Portions",
     "type": "FOOD",
-    "stock": 100,
-    "procured": "2027-03-15",
+    "stock": 49,
+    "procured": "2026-11-10",
     "animals": "Lions",
     "id": "FO000001",
-    "update": 0
+    "update": 4
   },
   {
-    "name": "Elephant Hay",
+    "name": "Tiger Meat Portions",
+    "type": "FOOD",
+    "stock": 36,
+    "procured": "2026-11-08",
+    "animals": "Tigers",
+    "id": "FO000002",
+    "update": 3
+  },
+  {
+    "name": "Elephant Hay Bales",
     "type": "FOOD",
     "stock": 0,
-    "procured": "2027-06-30",
+    "procured": "2026-11-01",
     "animals": "Elephants",
-    "id": "FO000002",
-    "update": 10
+    "id": "FO000003",
+    "update": 2
   },
   {
-    "name": "Monkey Bananas",
+    "name": "Primate Fruit Mix",
     "type": "FOOD",
-    "stock": 80,
-    "procured": "2026-12-20",
-    "animals": "Monkeys",
-    "id": "FO000003",
-    "update": 0
+    "stock": 26,
+    "procured": "2026-11-12",
+    "animals": "Chimpanzees and Orangutans",
+    "id": "FO000004",
+    "update": 2
+  },
+  {
+    "name": "Leafy Greens Crates",
+    "type": "FOOD",
+    "stock": 14,
+    "procured": "2026-11-15",
+    "animals": "Gorillas and Primates",
+    "id": "FO000005",
+    "update": 2
+  },
+  {
+    "name": "Zebra Feed Pellets",
+    "type": "FOOD",
+    "stock": 28,
+    "procured": "2026-11-09",
+    "animals": "Zebras",
+    "id": "FO000006",
+    "update": 3
+  },
+  {
+    "name": "Giraffe Browse Bundles",
+    "type": "FOOD",
+    "stock": 13,
+    "procured": "2026-11-13",
+    "animals": "Giraffes",
+    "id": "FO000007",
+    "update": 1
+  },
+  {
+    "name": "Parrot Seed Blend",
+    "type": "FOOD",
+    "stock": 21,
+    "procured": "2026-11-11",
+    "animals": "Parrots",
+    "id": "FO000008",
+    "update": 2
+  },
+  {
+    "name": "Fish Food Pellets",
+    "type": "FOOD",
+    "stock": 0,
+    "procured": "2026-11-05",
+    "animals": "Penguins and Otters",
+    "id": "FO000009",
+    "update": 2
+  },
+  {
+    "name": "Rabbit Hay",
+    "type": "FOOD",
+    "stock": 22,
+    "procured": "2026-11-14",
+    "animals": "Rabbits",
+    "id": "FO000010",
+    "update": 1
+  },
+  {
+    "name": "Herbivore Mineral Blocks",
+    "type": "FOOD",
+    "stock": 11,
+    "procured": "2026-11-07",
+    "animals": "Elephants, Zebras, and Giraffes",
+    "id": "FO000011",
+    "update": 1
+  },
+  {
+    "name": "Gorilla Browse Mix",
+    "type": "FOOD",
+    "stock": 23,
+    "procured": "2026-11-16",
+    "animals": "Gorillas",
+    "id": "FO000012",
+    "update": 2
+  },
+  {
+    "name": "Broad-Spectrum Antibiotic",
+    "type": "MEDICINE",
+    "stock": 9,
+    "procured": "2026-10-28",
+    "id": "ME000001",
+    "update": 1
+  },
+  {
+    "name": "Wound-Care Antiseptic",
+    "type": "MEDICINE",
+    "stock": 24,
+    "procured": "2026-11-02",
+    "id": "ME000002",
+    "update": 1
   },
   {
     "name": "Vitamin Supplement",
     "type": "MEDICINE",
-    "stock": 30,
-    "procured": "2027-01-15",
-    "id": "ME000001",
-    "update": 0
+    "stock": 38,
+    "procured": "2026-11-06",
+    "id": "ME000003",
+    "update": 2
   },
   {
-    "name": "Antibiotic Injection",
+    "name": "Anti-Parasitic Treatment",
     "type": "MEDICINE",
-    "stock": 15,
-    "procured": "2027-08-10",
-    "id": "ME000002",
-    "update": 0
+    "stock": 16,
+    "procured": "2026-10-30",
+    "id": "ME000004",
+    "update": 1
   },
   {
-    "name": "Banana",
-    "type": "FOOD",
-    "stock": 100,
-    "procured": "2027-03-21",
-    "animals": "you",
-    "id": "FO000004",
-    "update": 0
+    "name": "Electrolyte Solution",
+    "type": "MEDICINE",
+    "stock": 21,
+    "procured": "2026-11-12",
+    "id": "ME000005",
+    "update": 1
   },
   {
-    "name": "qwe",
-    "type": "FOOD",
+    "name": "Pain Relief Medication",
+    "type": "MEDICINE",
+    "stock": 0,
+    "procured": "2026-10-25",
+    "id": "ME000006",
+    "update": 1
+  },
+  {
+    "name": "Sterile Saline",
+    "type": "MEDICINE",
+    "stock": 18,
+    "procured": "2026-11-03",
+    "id": "ME000007",
+    "update": 1
+  },
+  {
+    "name": "Protective Gloves",
+    "type": "MISC",
     "stock": 10,
-    "procured": "2026-02-20",
-    "animals": "them",
-    "id": "FO000006",
-    "update": 0
+    "procured": "2026-11-15",
+    "id": "MI000001",
+    "update": 1
+  },
+  {
+    "name": "Animal-Safe Disinfectant",
+    "type": "MISC",
+    "stock": 32,
+    "procured": "2026-11-10",
+    "id": "MI000002",
+    "update": 2
+  },
+  {
+    "name": "Habitat Cleaning Brushes",
+    "type": "MISC",
+    "stock": 14,
+    "procured": "2026-11-13",
+    "id": "MI000003",
+    "update": 1
   }
 ]

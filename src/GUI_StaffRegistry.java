@@ -6,10 +6,9 @@ import java.util.ArrayList;
 public final class GUI_StaffRegistry extends JPanel {
 
     private final UserData admin;
-
-    private final ArrayList<UserData> users = Database.loadUsers();
-
+    private final ArrayList<UserData> users = Database.getUserList();
     private DefaultTableModel tableModel;
+    private JTable staffTable;
 
     public GUI_StaffRegistry(CardLayout cardLayout, JPanel mainPanel, UserData admin) {
         this.admin = admin;
@@ -17,40 +16,33 @@ public final class GUI_StaffRegistry extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Check if the current user is an admin
         if (admin.getType() != UserData.ROLE.ADMIN) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Access Denied. Admins Only.",
-                    "Access Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this, "Access Denied. Admins Only.",
+                    "Access Error", JOptionPane.ERROR_MESSAGE);
             cardLayout.show(mainPanel, "MAIN");
             return;
         }
 
-        // TOP PANEL
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        assignMissingEmployeeIds();
 
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         JLabel title = new JLabel("STAFF REGISTRY");
         title.setFont(new Font("Arial", Font.BOLD, 25));
 
         JButton addButton = new JButton("Add Staff");
         JButton removeButton = new JButton("Remove Staff");
-        JButton returnButton = new JButton("Return to Main");
+        JButton profileButton = new JButton("View / Edit Profile");
 
         addButton.addActionListener(e -> addStaff());
         removeButton.addActionListener(e -> removeStaff());
-        returnButton.addActionListener(e -> cardLayout.show(mainPanel, "MAIN"));
+        profileButton.addActionListener(e -> openSelectedProfile());
 
         topPanel.add(title);
         topPanel.add(addButton);
         topPanel.add(removeButton);
-        topPanel.add(returnButton);
+        topPanel.add(profileButton);
 
-        // STAFF TABLE
-        String[] columns = {"Username", "Role"};
-
+        String[] columns = {"Username", "Role", "Employee ID", "Employee Name"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -58,31 +50,78 @@ public final class GUI_StaffRegistry extends JPanel {
             }
         };
 
-        JTable staffTable = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(staffTable);
+        staffTable = new JTable(tableModel);
+        staffTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        staffTable.setRowHeight(25);
 
+        staffTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                    openSelectedProfile();
+                }
+            }
+        });
+
+        JScrollPane scrollPane = new JScrollPane(staffTable);
         add(topPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
 
         updateTable();
     }
 
-    // DISPLAY ALL STAFF
+    private void assignMissingEmployeeIds() {
+        boolean changed = false;
+
+        for (int i = 0; i < users.size(); i++) {
+            UserData user = users.get(i);
+
+            if (user.getEmployeeId() == null || user.getEmployeeId().trim().isEmpty()) {
+                user.setEmployeeId(String.format("EMP-%03d", i + 1));
+                changed = true;
+            }
+        }
+
+        if (changed) Database.saveUsers(users);
+    }
+
     private void updateTable() {
         tableModel.setRowCount(0);
 
         for (UserData user : users) {
             tableModel.addRow(new Object[]{
-                    user.getUsername(),
-                    user.getType()
+                user.getUsername(),
+                user.getType(),
+                user.getEmployeeId(),
+                user.getName() == null || user.getName().trim().isEmpty()
+                        ? "Not Set" : user.getName()
             });
         }
     }
 
-    // ADD STAFF
-    private void addStaff() {
+    private void openSelectedProfile() {
+        if (admin.getType() != UserData.ROLE.ADMIN) return;
 
-        // Double-check admin access
+        int selectedRow = staffTable.getSelectedRow();
+
+        if (selectedRow < 0) {
+            showError("Please select an employee from the table first.");
+            return;
+        }
+
+        UserData selectedUser = users.get(
+                staffTable.convertRowIndexToModel(selectedRow)
+        );
+
+        GUI_EmployeeProfilePopup profile = new GUI_EmployeeProfilePopup(
+                SwingUtilities.getWindowAncestor(this), selectedUser, users);
+
+        profile.setVisible(true);
+
+        updateTable();
+    }
+
+    private void addStaff() {
         if (admin.getType() != UserData.ROLE.ADMIN) return;
 
         JTextField usernameField = new JTextField();
@@ -121,7 +160,6 @@ public final class GUI_StaffRegistry extends JPanel {
             return;
         }
 
-        // Check duplicate usernames
         for (UserData user : users) {
             if (user.getUsername().equalsIgnoreCase(username)) {
                 showError("Username already exists.");
@@ -134,64 +172,61 @@ public final class GUI_StaffRegistry extends JPanel {
         );
 
         UserData newUser = new UserData(username, password, role);
+        newUser.setEmployeeId(createEmployeeId());
 
         users.add(newUser);
 
         Database.saveUsers(users);
-
         updateTable();
 
         JOptionPane.showMessageDialog(
                 this,
-                "Staff Account Successfully Registered!",
+                "Staff Account Successfully Registered!\n"
+                        + "You can now select the account and complete its employee profile.",
                 "Success",
                 JOptionPane.INFORMATION_MESSAGE
         );
     }
 
-    // REMOVE STAFF
-    private void removeStaff() {
+    private String createEmployeeId() {
+        String id;
+        boolean exists;
 
-        // Double-check admin access
+        do {
+            id = "EMP-" + System.currentTimeMillis();
+            exists = false;
+
+            for (UserData user : users) {
+                if (id.equalsIgnoreCase(user.getEmployeeId())) {
+                    exists = true;
+                    break;
+                }
+            }
+
+        } while (exists);
+
+        return id;
+    }
+
+    private void removeStaff() {
         if (admin.getType() != UserData.ROLE.ADMIN) return;
 
-        int selectedRow = JOptionPane.showConfirmDialog(
-                this,
-                "Remove a staff account?",
-                "Remove Staff",
-                JOptionPane.OK_CANCEL_OPTION
-        );
+        int selectedRow = staffTable.getSelectedRow();
 
-        if (selectedRow != JOptionPane.OK_OPTION) return;
-
-        String username = JOptionPane.showInputDialog(
-                this,
-                "Enter the username to remove:"
-        );
-
-        if (username == null || username.trim().isEmpty()) return;
-
-        UserData selectedUser = null;
-
-        for (UserData user : users) {
-            if (user.getUsername().equalsIgnoreCase(username.trim())) {
-                selectedUser = user;
-                break;
-            }
-        }
-
-        if (selectedUser == null) {
-            showError("Staff account not found.");
+        if (selectedRow < 0) {
+            showError("Please select a staff account to remove.");
             return;
         }
 
-        // Prevent deleting the currently logged-in account
+        UserData selectedUser = users.get(
+                staffTable.convertRowIndexToModel(selectedRow)
+        );
+
         if (selectedUser.getUsername().equals(admin.getUsername())) {
             showError("You cannot remove your own account.");
             return;
         }
 
-        // Prevent deleting the last admin account
         if (selectedUser.getType() == UserData.ROLE.ADMIN) {
             int adminCount = 0;
 
@@ -209,8 +244,7 @@ public final class GUI_StaffRegistry extends JPanel {
 
         int confirm = JOptionPane.showConfirmDialog(
                 this,
-                "Are you sure you want to remove " +
-                        selectedUser.getUsername() + "?",
+                "Are you sure you want to remove " + selectedUser.getUsername() + "?",
                 "Confirm Removal",
                 JOptionPane.YES_NO_OPTION
         );
@@ -220,7 +254,6 @@ public final class GUI_StaffRegistry extends JPanel {
         users.remove(selectedUser);
 
         Database.saveUsers(users);
-
         updateTable();
 
         JOptionPane.showMessageDialog(

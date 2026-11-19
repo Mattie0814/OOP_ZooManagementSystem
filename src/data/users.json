@@ -3,13 +3,31 @@
     "username": "admin",
     "password": "admin123",
     "type": "ADMIN",
+    "employeeId": "EMP-001",
+    "name": "Alex Morgan",
+    "address": "Zoo Administration Office",
+    "contactNumber": "555-0101",
+    "emergencyContact": "555-0191",
+    "birthdate": "1982-04-12",
+    "sexGender": "Female",
+    "civilStatus": "Single",
+    "workHours": "08:00 AM - 05:00 PM",
+    "salary": "65000",
+    "isActive": false,
     "schedule": [
       {
-        "taskType": "GENERAL",
-        "taskName": "Review Monthly Reports",
+        "taskName": "Review Daily Operations",
         "taskTime": "09:00 AM",
-        "startDate": "2026-11-05",
-        "recurrence": "NONE"
+        "startDate": "2026-11-20",
+        "recurrence": "DAILY",
+        "taskType": "GENERAL"
+      },
+      {
+        "taskName": "Approve Supply Requests",
+        "taskTime": "02:00 PM",
+        "startDate": "2026-11-20",
+        "recurrence": "WEEKLY",
+        "taskType": "GENERAL"
       }
     ]
   },
@@ -17,13 +35,98 @@
     "username": "staff01",
     "password": "staff123",
     "type": "STAFF",
+    "employeeId": "EMP-002",
+    "name": "Jamie Chen",
+    "address": "Visitor Services Building",
+    "contactNumber": "555-0102",
+    "emergencyContact": "555-0192",
+    "birthdate": "1994-09-03",
+    "sexGender": "Non-binary",
+    "civilStatus": "Single",
+    "workHours": "07:00 AM - 03:00 PM",
+    "salary": "38000",
+    "isActive": false,
     "schedule": [
       {
-        "taskType": "GENERAL",
-        "taskName": "Inventory Inspection",
-        "taskTime": "10:00 AM",
-        "startDate": "2026-11-05",
-        "recurrence": "DAILY"
+        "taskName": "Inspect Visitor Areas",
+        "taskTime": "08:00 AM",
+        "startDate": "2026-11-20",
+        "recurrence": "DAILY",
+        "taskType": "GENERAL"
+      },
+      {
+        "taskName": "Restock Visitor Information Desks",
+        "taskTime": "01:00 PM",
+        "startDate": "2026-11-20",
+        "recurrence": "WEEKLY",
+        "taskType": "GENERAL"
+      }
+    ]
+  },
+  {
+    "username": "staff02",
+    "password": "staff123",
+    "type": "STAFF",
+    "employeeId": "EMP-003",
+    "name": "Taylor Brooks",
+    "address": "Facilities Office",
+    "contactNumber": "555-0103",
+    "emergencyContact": "555-0193",
+    "birthdate": "1988-01-27",
+    "sexGender": "Male",
+    "civilStatus": "Married",
+    "workHours": "09:00 AM - 05:00 PM",
+    "salary": "42000",
+    "isActive": true,
+    "schedule": [
+      {
+        "taskName": "Check Maintenance Requests",
+        "taskTime": "09:30 AM",
+        "startDate": "2026-11-20",
+        "recurrence": "DAILY",
+        "taskType": "GENERAL"
+      },
+      {
+        "taskName": "Inspect Public Restrooms",
+        "taskTime": "11:00 AM",
+        "startDate": "2026-11-20",
+        "recurrence": "DAILY",
+        "taskType": "MISC",
+        "habitatLocation": "Public Grounds",
+        "safetyRiskLevel": "LOW",
+        "equipmentNeeded": "Gloves, Cleaning Kit"
+      }
+    ]
+  },
+  {
+    "username": "staff03",
+    "password": "staff123",
+    "type": "STAFF",
+    "employeeId": "EMP-004",
+    "name": "Riley Patel",
+    "address": "Inventory and Receiving",
+    "contactNumber": "555-0104",
+    "emergencyContact": "555-0194",
+    "birthdate": "1991-06-18",
+    "sexGender": "Female",
+    "civilStatus": "Single",
+    "workHours": "08:00 AM - 04:00 PM",
+    "salary": "40000",
+    "isActive": false,
+    "schedule": [
+      {
+        "taskName": "Check Incoming Deliveries",
+        "taskTime": "08:30 AM",
+        "startDate": "2026-11-20",
+        "recurrence": "DAILY",
+        "taskType": "GENERAL"
+      },
+      {
+        "taskName": "Audit Medicine Storage",
+        "taskTime": "03:00 PM",
+        "startDate": "2026-11-20",
+        "recurrence": "WEEKLY",
+        "taskType": "GENERAL"
       }
     ]
   },
@@ -31,36 +134,95 @@
     "username": "zookeeper01",
     "password": "zoo123",
     "type": "ZOOKEEPER",
+    "employeeId": "EMP-005",
+    "name": "Morgan Lee",
+    "address": "Primate Care Unit",
+    "contactNumber": "555-0105",
+    "emergencyContact": "555-0195",
+    "birthdate": "1990-11-05",
+    "sexGender": "Female",
+    "civilStatus": "Single",
+    "workHours": "06:00 AM - 02:00 PM",
+    "salary": "47000",
+    "isActive": false,
     "schedule": [
       {
-        "taskType": "FOOD",
-        "taskName": "Feed the Lions",
-        "taskTime": "08:00 AM",
-        "startDate": "2026-11-05",
+        "taskName": "Feed the Primates",
+        "taskTime": "07:00 AM",
+        "startDate": "2026-11-20",
         "recurrence": "DAILY",
-        "animalSpecies": "Lion",
-        "enclosureZone": "Zone A",
-        "dietNotes": "5 kg of meat per lion"
+        "taskType": "FOOD",
+        "animalSpecies": "Chimpanzee and Orangutan",
+        "enclosureZone": "ENC-01 Primate Forest",
+        "dietNotes": "Fruit, leafy greens, and measured primate pellets"
       },
       {
+        "taskName": "Check Orangutan Treatment Plan",
+        "taskTime": "10:00 AM",
+        "startDate": "2026-11-20",
+        "recurrence": "DAILY",
         "taskType": "MEDICINE",
-        "taskName": "Administer Medicine to Elephant",
-        "taskTime": "02:00 PM",
-        "startDate": "2026-11-06",
-        "recurrence": "NONE",
-        "animalID": "A003",
-        "dosage": "10 ml",
-        "administeredBy": "Dr. Santos"
+        "animalID": "PR-002",
+        "dosage": "As prescribed by veterinarian",
+        "administeredBy": "Dr. Avery Kim"
       },
       {
+        "taskName": "Clean Primate Habitat",
+        "taskTime": "12:30 PM",
+        "startDate": "2026-11-20",
+        "recurrence": "DAILY",
         "taskType": "MISC",
-        "taskName": "Clean Monkey Habitat",
-        "taskTime": "04:00 PM",
-        "startDate": "2026-11-05",
-        "recurrence": "WEEKLY",
-        "habitatLocation": "Zone C",
-        "safetyRiskLevel": "LOW",
-        "equipmentNeeded": "Gloves, Brush, Disinfectant"
+        "habitatLocation": "ENC-01 Primate Forest",
+        "safetyRiskLevel": "MEDIUM",
+        "equipmentNeeded": "Gloves, Brush, Animal-safe Disinfectant"
+      }
+    ]
+  },
+  {
+    "username": "zookeeper02",
+    "password": "zoo123",
+    "type": "ZOOKEEPER",
+    "employeeId": "EMP-006",
+    "name": "Casey Rivera",
+    "address": "Savanna and Herbivore Care Unit",
+    "contactNumber": "555-0106",
+    "emergencyContact": "555-0196",
+    "birthdate": "1986-03-22",
+    "sexGender": "Male",
+    "civilStatus": "Married",
+    "workHours": "07:00 AM - 03:00 PM",
+    "salary": "48000",
+    "isActive": false,
+    "schedule": [
+      {
+        "taskName": "Feed the Big Cats",
+        "taskTime": "08:00 AM",
+        "startDate": "2026-11-20",
+        "recurrence": "DAILY",
+        "taskType": "FOOD",
+        "animalSpecies": "Lion and Tiger",
+        "enclosureZone": "ENC-02 Big Cat Range",
+        "dietNotes": "Portioned meat diet per veterinary feeding plan"
+      },
+      {
+        "taskName": "Check Elephant Health",
+        "taskTime": "09:00 AM",
+        "startDate": "2026-11-20",
+        "recurrence": "DAILY",
+        "taskType": "MEDICINE",
+        "animalID": "HB-001",
+        "dosage": "As prescribed by veterinarian",
+        "administeredBy": "Dr. Avery Kim"
+      },
+      {
+        "taskName": "Prepare Herbivore Browse",
+        "taskTime": "01:30 PM",
+        "startDate": "2026-11-20",
+        "recurrence": "DAILY",
+        "taskType": "FOOD",
+        "animalSpecies": "Elephant, Zebra, and Giraffe",
+        "enclosureZone": "ENC-03 Savannah Meadow",
+        "dietNotes": "Fresh browse, hay, and species-specific feed"
       }
     ]
   }

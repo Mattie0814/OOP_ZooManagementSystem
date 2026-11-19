@@ -1,86 +1,107 @@
 [
   {
-    "id": "ENC_01",
-    "name": "Gorillas",
-    "capacity": 7,
+    "id": "ENC-01",
+    "name": "Primate Forest",
+    "capacity": 8,
     "animals": [
       {
-        "name": "Harambe",
-        "species": "Gorilla",
+        "name": "Kito",
+        "species": "Chimpanzee",
+        "gender": "Male",
+        "birthDate": "2026-11-20",
+        "healthStatus": "Healthy",
+        "imagePath": "C:\\Users\\RoseMeren\\Downloads\\golden_gaytime.png"
+      },
+      {
+        "name": "Mina",
+        "species": "Orangutan",
         "gender": "Female",
-        "birthDate": "1000-10-10",
+        "birthDate": "2008-09-22",
         "healthStatus": "Under Treatment"
       },
       {
-        "name": "Koko",
+        "name": "Sefu",
+        "species": "Gorilla",
+        "gender": "Male",
+        "birthDate": "2016-02-11",
+        "healthStatus": "Healthy"
+      },
+      {
+        "name": "Nia",
         "species": "Gorilla",
         "gender": "Female",
-        "birthDate": "1971-07-04",
+        "birthDate": "2019-07-03",
+        "healthStatus": "Under Observation"
+      }
+    ]
+  },
+  {
+    "id": "ENC-02",
+    "name": "Big Cat Range",
+    "capacity": 6,
+    "animals": [
+      {
+        "name": "Tala",
+        "species": "Lion",
+        "gender": "Female",
+        "birthDate": "2015-03-18",
+        "healthStatus": "Healthy"
+      },
+      {
+        "name": "Rafiki",
+        "species": "Lion",
+        "gender": "Male",
+        "birthDate": "2013-11-09",
+        "healthStatus": "Healthy"
+      },
+      {
+        "name": "Sora",
+        "species": "Tiger",
+        "gender": "Female",
+        "birthDate": "2017-06-27",
+        "healthStatus": "Healthy"
+      },
+      {
+        "name": "Batu",
+        "species": "Tiger",
+        "gender": "Male",
+        "birthDate": "2014-12-01",
         "healthStatus": "Healthy"
       }
     ]
   },
   {
-    "id": "ENC_02",
-    "name": "Gorillas",
-    "capacity": 15,
+    "id": "ENC-03",
+    "name": "Savannah Meadow",
+    "capacity": 10,
     "animals": [
       {
-        "name": "Bokito",
-        "species": "Gorilla",
-        "gender": "Male",
-        "birthDate": "1996-03-14",
-        "healthStatus": "Healthy"
-      },
-      {
-        "name": "Jabari",
-        "species": "Gorilla",
-        "gender": "Male",
-        "birthDate": "2001-06-22",
-        "healthStatus": "Under Observation"
-      },
-      {
-        "name": "Maya",
-        "species": "Gorilla",
+        "name": "Duma",
+        "species": "Elephant",
         "gender": "Female",
-        "birthDate": "2012-09-18",
-        "healthStatus": "Healthy"
-      },
-      {
-        "name": "Tano",
-        "species": "Gorilla",
-        "gender": "Male",
-        "birthDate": "2015-11-30",
-        "healthStatus": "Healthy"
-      },
-      {
-        "name": "Nala",
-        "species": "Gorilla",
-        "gender": "Female",
-        "birthDate": "2018-04-12",
+        "birthDate": "2006-04-16",
         "healthStatus": "Under Treatment"
       },
       {
-        "name": "Zuri",
-        "species": "Gorilla",
-        "gender": "Female",
-        "birthDate": "2020-08-25",
+        "name": "Pendo",
+        "species": "Elephant",
+        "gender": "Male",
+        "birthDate": "2009-08-30",
         "healthStatus": "Healthy"
       },
       {
-        "name": "Kibo",
-        "species": "Gorilla",
-        "gender": "Male",
-        "birthDate": "2017-01-09",
-        "healthStatus": "Under Observation"
+        "name": "Zola",
+        "species": "Zebra",
+        "gender": "Female",
+        "birthDate": "2018-01-20",
+        "healthStatus": "Healthy"
       },
       {
-        "name": "Amara",
-        "species": "Gorilla",
-        "gender": "Female",
-        "birthDate": "2014-12-03",
-        "healthStatus": "Healthy",
-        "imagePath": "D:\\OneDrive\\Documents\\IMG_20231014_0002.jpg"
+        "name": "Taji",
+        "species": "Giraffe",
+        "gender": "Male",
+        "birthDate": "2011-10-05",
+        "healthStatus": "Healthy"
       }
     ]
   }

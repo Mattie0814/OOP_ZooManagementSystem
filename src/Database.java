@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class Database {
@@ -19,6 +20,7 @@ public class Database {
 
     private static final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
+            .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
             .registerTypeHierarchyAdapter(TaskData.class, new TaskDataAdapter())
             .registerTypeHierarchyAdapter(ItemData.class, new ItemDataAdapter())
             .create();
@@ -27,41 +29,100 @@ public class Database {
     private static final Type ITEM_LIST_TYPE = new TypeToken<ArrayList<ItemData>>() {}.getType();
     private static final Type ENCLOSURE_LIST_TYPE = new TypeToken<ArrayList<EnclosureData>>() {}.getType();
 
-    // USER DATA
-    public static void saveUsers(ArrayList<UserData> users) {
-        saveData(USER_PATH, users);
-    }
+    private static ArrayList<UserData> users = null;
+    private static ArrayList<ItemData> inventory = null;
+    private static ArrayList<EnclosureData> enclosures = null;
 
-    public static ArrayList<UserData> loadUsers() {
-        return loadData(USER_PATH, USER_LIST_TYPE);
-    }
-
-    public static void setActiveUser(UserData user) {
-        if (user == null) {
+    public static void saveUsers(ArrayList<UserData> userList) {
+        if (userList == null) {
+            System.err.println("Cannot save null user list.");
             return;
         }
 
-        activeUser = user;
+        users = userList;
+
+        saveData(USER_PATH, users);
     }
 
-    public static UserData getActiveUser() { return activeUser; }
+    public static void loadUsers() {
+        users = loadData(USER_PATH, USER_LIST_TYPE);
 
-    // INVENTORY DATA
+        activeUser = null;
+
+        for (UserData user : users) {
+            if (user.getIsActive()) {
+                if (activeUser == null) {
+                    activeUser = user;
+                } else {
+                    user.setIsActive(false);
+                }
+            }
+        }
+    }
+
+    public static ArrayList<UserData> getUserList() {
+        return users;
+    }
+
+    public static void setActiveUser(UserData user) {
+        for (UserData prevUser : users) {
+            prevUser.setIsActive(false);
+        }
+
+        if (user == null) {
+            activeUser.setIsActive(false);
+            activeUser = null;
+        }
+        else {
+            user.setIsActive(true);
+            activeUser = user;
+        }
+
+        saveUsers(users);
+    }
+
+    public static UserData getActiveUser() {
+        return activeUser;
+    }
+
     public static void saveInventory(ArrayList<ItemData> items) {
-        saveData(INVENTORY_PATH, items);
+        if (items == null) {
+            System.err.println("Cannot save null inventory.");
+            return;
+        }
+
+        inventory = items;
+
+        saveData(INVENTORY_PATH, inventory);
     }
 
-    public static ArrayList<ItemData> loadInventory() {
-        return loadData(INVENTORY_PATH, ITEM_LIST_TYPE);
+    public static void loadInventory() {
+
+        inventory = loadData(INVENTORY_PATH, ITEM_LIST_TYPE);
     }
 
-    // ENCLOSURE DATA
-    public static void saveEnclosures(ArrayList<EnclosureData> enclosures) {
+    public static ArrayList<ItemData> getInventoryList() {
+        return inventory;
+    }
+
+    public static void saveEnclosures(ArrayList<EnclosureData> enclosureList) {
+        if (enclosureList == null) {
+            System.err.println("Cannot save null enclosure list.");
+            return;
+        }
+
+        enclosures = enclosureList;
+
         saveData(ENCLOSURE_PATH, enclosures);
     }
 
-    public static ArrayList<EnclosureData> loadEnclosures() {
-        return loadData(ENCLOSURE_PATH, ENCLOSURE_LIST_TYPE);
+    public static void loadEnclosures() {
+
+        enclosures = loadData(ENCLOSURE_PATH, ENCLOSURE_LIST_TYPE);
+    }
+
+    public static ArrayList<EnclosureData> getEnclosureList() {
+        return enclosures;
     }
 
     private static <T> void saveData(String path, ArrayList<T> data) {

@@ -1,12 +1,14 @@
+import java.time.LocalDate;
+
 public class AnimalData {
     private String name;
     private String species;
     private String gender;
-    private String birthDate;
+    private LocalDate birthDate;
     private String healthStatus;
     private String imagePath;
 
-    public AnimalData(String name, String species, String gender, String birthDate, String healthStatus) {
+    public AnimalData(String name, String species, String gender, LocalDate birthDate, String healthStatus) {
         this.name = name;
         this.species = species;
         this.gender = gender;
@@ -44,15 +46,15 @@ public class AnimalData {
 
     public String getGender() { return gender; }
 
-    public void setBirthDate(String birthDate){
-        if (birthDate.isEmpty()){
+    public void setBirthDate(LocalDate birthDate){
+        if (birthDate == null){
             return;
         }
 
         this.birthDate = birthDate;
     }
 
-    public String getBirthDate() { return birthDate; }
+    public LocalDate getBirthDate() { return birthDate; }
 
     public void setHealthStatus(String healthStatus){
         if (healthStatus.isEmpty()){
