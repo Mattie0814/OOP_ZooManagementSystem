@@ -27,9 +27,9 @@ class DateInputPanel extends JPanel {
         }
 
         int currentYear = seed.getYear();
-        Integer[] years = new Integer[21];
+        Integer[] years = new Integer[100];
         for (int i = 0; i < years.length; i++) {
-            years[i] = (currentYear - 10) + i;
+            years[i] = (currentYear - 100) + i;
         }
 
         monthBox = createInputBox(months);

@@ -8,30 +8,32 @@
         "name": "Kito",
         "species": "Chimpanzee",
         "gender": "Male",
-        "birthDate": "2026-11-20",
+        "birthDate": "1926-11-20",
         "healthStatus": "Healthy",
-        "imagePath": "C:\\Users\\RoseMeren\\Downloads\\golden_gaytime.png"
+        "imagePath": "src/data/animal_photos/Kito_1795129237371.jpg"
       },
       {
         "name": "Mina",
         "species": "Orangutan",
         "gender": "Female",
         "birthDate": "2008-09-22",
-        "healthStatus": "Under Treatment"
-      },
-      {
-        "name": "Sefu",
-        "species": "Gorilla",
-        "gender": "Male",
-        "birthDate": "2016-02-11",
-        "healthStatus": "Healthy"
+        "healthStatus": "Under Treatment",
+        "imagePath": "src/data/animal_photos/Mina_1795128106055.png"
       },
       {
         "name": "Nia",
         "species": "Gorilla",
         "gender": "Female",
-        "birthDate": "2019-07-03",
-        "healthStatus": "Under Observation"
+        "birthDate": "1919-07-03",
+        "healthStatus": "Healthy"
+      },
+      {
+        "name": "Harambe",
+        "species": "Gorilla",
+        "gender": "Male",
+        "birthDate": "1926-11-20",
+        "healthStatus": "Critical",
+        "imagePath": "src/data/animal_photos/Harambe_1795129463928.jpg"
       }
     ]
   },
@@ -44,15 +46,16 @@
         "name": "Tala",
         "species": "Lion",
         "gender": "Female",
-        "birthDate": "2015-03-18",
-        "healthStatus": "Healthy"
+        "birthDate": "1915-03-18",
+        "healthStatus": "Healthy",
+        "imagePath": "src/data/animal_photos/Tala_1795129626515.jpg"
       },
       {
         "name": "Rafiki",
         "species": "Lion",
         "gender": "Male",
-        "birthDate": "2013-11-09",
-        "healthStatus": "Healthy"
+        "birthDate": "1813-11-09",
+        "healthStatus": "Under Treatment"
       },
       {
         "name": "Sora",
@@ -77,31 +80,35 @@
     "animals": [
       {
         "name": "Duma",
-        "species": "Elephant",
+        "species": "Chupacabra",
         "gender": "Female",
-        "birthDate": "2006-04-16",
-        "healthStatus": "Under Treatment"
+        "birthDate": "1806-04-16",
+        "healthStatus": "Under Treatment",
+        "imagePath": "src/data/animal_photos/Duma_1795129508525.jpg"
       },
       {
         "name": "Pendo",
         "species": "Elephant",
         "gender": "Male",
-        "birthDate": "2009-08-30",
-        "healthStatus": "Healthy"
+        "birthDate": "1909-08-30",
+        "healthStatus": "Healthy",
+        "imagePath": "src/data/animal_photos/Pendo_1795129543635.png"
       },
       {
         "name": "Zola",
         "species": "Zebra",
         "gender": "Female",
-        "birthDate": "2018-01-20",
-        "healthStatus": "Healthy"
+        "birthDate": "1618-01-20",
+        "healthStatus": "Healthy",
+        "imagePath": "src/data/animal_photos/Zola_1795129821661.png"
       },
       {
         "name": "Taji",
-        "species": "Giraffe",
+        "species": "Bear",
         "gender": "Male",
-        "birthDate": "2011-10-05",
-        "healthStatus": "Healthy"
+        "birthDate": "1811-10-05",
+        "healthStatus": "Healthy",
+        "imagePath": "src/data/animal_photos/Taji_1795129589430.png"
       }
     ]
   }

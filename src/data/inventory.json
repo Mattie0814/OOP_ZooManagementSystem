@@ -2,7 +2,7 @@
   {
     "name": "Lion Meat Portions",
     "type": "FOOD",
-    "stock": 49,
+    "stock": 33,
     "procured": "2026-11-10",
     "animals": "Lions",
     "id": "FO000001",
@@ -11,7 +11,7 @@
   {
     "name": "Tiger Meat Portions",
     "type": "FOOD",
-    "stock": 36,
+    "stock": 24,
     "procured": "2026-11-08",
     "animals": "Tigers",
     "id": "FO000002",
@@ -29,7 +29,7 @@
   {
     "name": "Primate Fruit Mix",
     "type": "FOOD",
-    "stock": 26,
+    "stock": 18,
     "procured": "2026-11-12",
     "animals": "Chimpanzees and Orangutans",
     "id": "FO000004",
@@ -38,7 +38,7 @@
   {
     "name": "Leafy Greens Crates",
     "type": "FOOD",
-    "stock": 14,
+    "stock": 9,
     "procured": "2026-11-15",
     "animals": "Gorillas and Primates",
     "id": "FO000005",
@@ -47,7 +47,7 @@
   {
     "name": "Zebra Feed Pellets",
     "type": "FOOD",
-    "stock": 28,
+    "stock": 16,
     "procured": "2026-11-09",
     "animals": "Zebras",
     "id": "FO000006",
@@ -56,7 +56,7 @@
   {
     "name": "Giraffe Browse Bundles",
     "type": "FOOD",
-    "stock": 13,
+    "stock": 9,
     "procured": "2026-11-13",
     "animals": "Giraffes",
     "id": "FO000007",
@@ -65,7 +65,7 @@
   {
     "name": "Parrot Seed Blend",
     "type": "FOOD",
-    "stock": 21,
+    "stock": 13,
     "procured": "2026-11-11",
     "animals": "Parrots",
     "id": "FO000008",
@@ -74,7 +74,7 @@
   {
     "name": "Fish Food Pellets",
     "type": "FOOD",
-    "stock": 0,
+    "stock": 5,
     "procured": "2026-11-05",
     "animals": "Penguins and Otters",
     "id": "FO000009",
@@ -83,7 +83,7 @@
   {
     "name": "Rabbit Hay",
     "type": "FOOD",
-    "stock": 22,
+    "stock": 18,
     "procured": "2026-11-14",
     "animals": "Rabbits",
     "id": "FO000010",
@@ -92,7 +92,7 @@
   {
     "name": "Herbivore Mineral Blocks",
     "type": "FOOD",
-    "stock": 11,
+    "stock": 7,
     "procured": "2026-11-07",
     "animals": "Elephants, Zebras, and Giraffes",
     "id": "FO000011",
@@ -101,7 +101,7 @@
   {
     "name": "Gorilla Browse Mix",
     "type": "FOOD",
-    "stock": 23,
+    "stock": 15,
     "procured": "2026-11-16",
     "animals": "Gorillas",
     "id": "FO000012",

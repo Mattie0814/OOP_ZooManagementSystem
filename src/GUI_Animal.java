@@ -7,6 +7,9 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -16,6 +19,7 @@ import java.util.stream.Collectors;
 
 public final class GUI_Animal extends JPanel {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
+    private static final String ANIMAL_PHOTO_DIR = "src/data/animal_photos";
 
     private final Map<EnclosureData, ArrayList<AnimalData>> enclosureMap = new HashMap<>();
     private final ArrayList<EnclosureData> enclosures;
@@ -299,18 +303,23 @@ public final class GUI_Animal extends JPanel {
         JTextField nameField = new JTextField();
         JTextField speciesField = new JTextField();
         JComboBox<String> genderBox = new JComboBox<>(new String[]{"Male", "Female", "Unknown"});
-        JTextField birthDateField = new JTextField();
+        DateInputPanel birthDatePanel = new DateInputPanel();
+
+        final File[] chosenPhoto = new File[1];
         JTextField imagePathField = new JTextField();
         imagePathField.setEditable(false);
+
         JButton browseImageButton = new JButton("Browse...");
         browseImageButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif"));
             int result = fileChooser.showOpenDialog(this);
             if (result == JFileChooser.APPROVE_OPTION) {
-                imagePathField.setText(fileChooser.getSelectedFile().getAbsolutePath());
+                chosenPhoto[0] = fileChooser.getSelectedFile();
+                imagePathField.setText(chosenPhoto[0].getAbsolutePath());
             }
         });
+
         JPanel imagePanel = new JPanel(new BorderLayout(5, 0));
         imagePanel.add(imagePathField, BorderLayout.CENTER);
         imagePanel.add(browseImageButton, BorderLayout.EAST);
@@ -320,8 +329,8 @@ public final class GUI_Animal extends JPanel {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof EnclosureData) {
-                    setText(((EnclosureData) value).getId() + " - " + ((EnclosureData) value).getName());
+                if (value instanceof EnclosureData enc) {
+                    setText(enc.getId() + " - " + enc.getName());
                 }
                 return this;
             }
@@ -336,8 +345,8 @@ public final class GUI_Animal extends JPanel {
         formPanel.add(speciesField);
         formPanel.add(new JLabel("Gender:"));
         formPanel.add(genderBox);
-        formPanel.add(new JLabel("Birth Date (YYYY-MM-DD):"));
-        formPanel.add(createBirthdatePanel());
+        formPanel.add(new JLabel("Birth Date:"));
+        formPanel.add(birthDatePanel);
         formPanel.add(new JLabel("Animal Photo:"));
         formPanel.add(imagePanel);
         formPanel.add(new JLabel("Enclosure Location:"));
@@ -349,13 +358,14 @@ public final class GUI_Animal extends JPanel {
                 this, formPanel, "Register Animal Details",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
         );
-
-        if (option != JOptionPane.OK_OPTION) return;
+        if (option != JOptionPane.OK_OPTION) {
+            return;
+        }
 
         String name = nameField.getText().trim();
         String species = speciesField.getText().trim();
         String gender = (String) genderBox.getSelectedItem();
-        LocalDate birthDate = birthdateField.getSelectedDate();
+        LocalDate birthDate = birthDatePanel.getSelectedDate();
         EnclosureData selectedEnclosure = (EnclosureData) enclosureBox.getSelectedItem();
         String healthStatus = (String) healthBox.getSelectedItem();
 
@@ -374,8 +384,18 @@ public final class GUI_Animal extends JPanel {
             return;
         }
 
+        String savedImagePath = null;
+        if (chosenPhoto[0] != null) {
+            try {
+                savedImagePath = saveAnimalPhoto(chosenPhoto[0], name);
+            } catch (IOException ex) {
+                showError("Could not save the selected picture: " + ex.getMessage());
+                return;
+            }
+        }
+
         AnimalData newAnimal = new AnimalData(name, species, gender, birthDate, healthStatus);
-        newAnimal.setImagePath(imagePathField.getText().trim());
+        newAnimal.setImagePath(savedImagePath);
         addAnimalToEnclosure(selectedEnclosure, newAnimal);
 
         JOptionPane.showMessageDialog(this, "Animal Registered Successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -402,7 +422,9 @@ public final class GUI_Animal extends JPanel {
                     break;
                 }
             }
-            if (targetAnimal != null) break;
+            if (targetAnimal != null) {
+                break;
+            }
         }
 
         if (targetAnimal == null || currentEnclosure == null) {
@@ -415,18 +437,25 @@ public final class GUI_Animal extends JPanel {
         JTextField speciesField = new JTextField(targetAnimal.getSpecies());
         JComboBox<String> genderBox = new JComboBox<>(new String[]{"Male", "Female", "Unknown"});
         genderBox.setSelectedItem(targetAnimal.getGender());
-        DateInputPanel birthdateField = new DateInputPanel();
-        JTextField imagePathField = new JTextField(targetAnimal.getImagePath() != null ? targetAnimal.getImagePath() : "");
+
+        DateInputPanel birthDatePanel = new DateInputPanel(extractBirthDate(targetAnimal.getBirthDate()));
+
+        final File[] chosenPhoto = new File[1];
+        String existingPath = targetAnimal.getImagePath() != null ? targetAnimal.getImagePath() : "";
+        JTextField imagePathField = new JTextField(existingPath);
         imagePathField.setEditable(false);
+
         JButton browseImageButton = new JButton("Browse...");
         browseImageButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
             fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif"));
             int result = fileChooser.showOpenDialog(this);
             if (result == JFileChooser.APPROVE_OPTION) {
-                imagePathField.setText(fileChooser.getSelectedFile().getAbsolutePath());
+                chosenPhoto[0] = fileChooser.getSelectedFile();
+                imagePathField.setText(chosenPhoto[0].getAbsolutePath());
             }
         });
+
         JPanel imagePanel = new JPanel(new BorderLayout(5, 0));
         imagePanel.add(imagePathField, BorderLayout.CENTER);
         imagePanel.add(browseImageButton, BorderLayout.EAST);
@@ -437,8 +466,8 @@ public final class GUI_Animal extends JPanel {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof EnclosureData) {
-                    setText(((EnclosureData) value).getId() + " - " + ((EnclosureData) value).getName());
+                if (value instanceof EnclosureData enc) {
+                    setText(enc.getId() + " - " + enc.getName());
                 }
                 return this;
             }
@@ -454,8 +483,8 @@ public final class GUI_Animal extends JPanel {
         formPanel.add(speciesField);
         formPanel.add(new JLabel("Gender:"));
         formPanel.add(genderBox);
-        formPanel.add(new JLabel("Birth Date (YYYY-MM-DD):"));
-        formPanel.add(createBirthdatePanel());
+        formPanel.add(new JLabel("Birth Date:"));
+        formPanel.add(birthDatePanel);
         formPanel.add(new JLabel("Animal Photo:"));
         formPanel.add(imagePanel);
         formPanel.add(new JLabel("Enclosure Location:"));
@@ -467,11 +496,13 @@ public final class GUI_Animal extends JPanel {
                 this, formPanel, "Update Animal Details",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
         );
-        if (option != JOptionPane.OK_OPTION) return;
+        if (option != JOptionPane.OK_OPTION) {
+            return;
+        }
 
         String species = speciesField.getText().trim();
         String gender = (String) genderBox.getSelectedItem();
-        LocalDate birthDate = birthdateField.getSelectedDate();
+        LocalDate birthDate = birthDatePanel.getSelectedDate();
         EnclosureData newEnclosure = (EnclosureData) enclosureBox.getSelectedItem();
         String healthStatus = (String) healthBox.getSelectedItem();
 
@@ -485,7 +516,6 @@ public final class GUI_Animal extends JPanel {
             return;
         }
 
-        // Handle enclosure migration if changed
         if (!currentEnclosure.equals(newEnclosure)) {
             if (newEnclosure.isFull()) {
                 showError("Enclosure " + newEnclosure.getId() + " is already at full capacity.");
@@ -498,13 +528,22 @@ public final class GUI_Animal extends JPanel {
             enclosureMap.computeIfAbsent(newEnclosure, k -> new ArrayList<>()).add(targetAnimal);
         }
 
+        String picturePath = targetAnimal.getImagePath();
+        if (chosenPhoto[0] != null) {
+            try {
+                picturePath = saveAnimalPhoto(chosenPhoto[0], targetAnimal.getName());
+            } catch (IOException ex) {
+                showError("Could not save the selected picture: " + ex.getMessage());
+                return;
+            }
+        }
+
         targetAnimal.setSpecies(species);
         targetAnimal.setGender(gender);
         targetAnimal.setBirthDate(birthDate);
-        targetAnimal.setImagePath(imagePathField.getText().trim());
+        targetAnimal.setImagePath(picturePath);
         targetAnimal.setHealthStatus(healthStatus);
 
-        // Refresh table row
         animalTableModel.setValueAt(targetAnimal.getSpecies(), modelRow, 1);
         animalTableModel.setValueAt(targetAnimal.getGender(), modelRow, 2);
         animalTableModel.setValueAt(targetAnimal.getBirthDate(), modelRow, 3);
@@ -513,8 +552,48 @@ public final class GUI_Animal extends JPanel {
 
         updateEnclosureTable();
         Database.saveEnclosures(enclosures);
+        displaySelectedAnimalPhoto();
 
         JOptionPane.showMessageDialog(this, "Animal Information Updated Successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private String saveAnimalPhoto(File sourceFile, String animalName) throws IOException {
+        File folder = new File(ANIMAL_PHOTO_DIR);
+        if (!folder.exists() && !folder.mkdirs()) {
+            throw new IOException("Could not create the animal picture folder.");
+        }
+
+        String extension = getExtension(sourceFile.getName());
+        String safeName = (animalName != null && !animalName.trim().isEmpty())
+                ? animalName.trim().replaceAll("[^a-zA-Z0-9_-]", "_")
+                : "animal";
+        String fileName = safeName + "_" + System.currentTimeMillis() + extension;
+
+        File destination = new File(folder, fileName);
+        Files.copy(sourceFile.toPath(), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        return ANIMAL_PHOTO_DIR + "/" + fileName;
+    }
+
+    private String getExtension(String fileName) {
+        int dot = fileName.lastIndexOf('.');
+        return dot >= 0 ? fileName.substring(dot).toLowerCase() : ".jpg";
+    }
+    private LocalDate extractBirthDate(Object rawBirthDate) {
+        if (rawBirthDate instanceof LocalDate ld) {
+            return ld;
+        }
+        if (rawBirthDate != null) {
+            String text = rawBirthDate.toString().trim();
+            if (!text.isEmpty()) {
+                try {
+                    return LocalDate.parse(text, DATE_FORMATTER);
+                } catch (DateTimeParseException ignored) {
+                    // Fall back to today if stored in a non-ISO format
+                }
+            }
+        }
+        return LocalDate.now();
     }
 
     private void openAddEnclosureForm() {
@@ -534,8 +613,9 @@ public final class GUI_Animal extends JPanel {
                 this, formPanel, "Add New Enclosure",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
         );
-
-        if (option != JOptionPane.OK_OPTION) return;
+        if (option != JOptionPane.OK_OPTION) {
+            return;
+        }
 
         String id = idField.getText().trim();
         String type = typeField.getText().trim();
